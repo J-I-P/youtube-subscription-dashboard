@@ -1,3 +1,4 @@
+import { MdGroup, MdLocationOn, MdVideocam } from "react-icons/md";
 import type { Channel } from "../types/youtube";
 
 interface Props {
@@ -52,9 +53,9 @@ export function ChannelCard({ channel }: Props) {
       )}
 
       <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
-        <span title="Subscribers">👥 {formatCount(channel.subscriberCount)}</span>
-        <span title="Videos">🎬 {formatCount(channel.videoCount)}</span>
-        {channel.country && <span title="Country">📍 {channel.country}</span>}
+        <span title="Subscribers" className="flex items-center gap-1"><MdGroup /> {formatCount(channel.subscriberCount)}</span>
+        <span title="Videos" className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
+        {channel.country && <span title="Country" className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
       </div>
     </a>
   );
