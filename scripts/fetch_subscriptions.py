@@ -76,52 +76,25 @@ def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
     raise RuntimeError("unreachable")
 
 
-def fetch_all_subscriptions(access_token: str, passes: int = 3) -> list[str]:
-    """Fetch subscription channel IDs using multiple passes and union the results.
+def fetch_all_subscriptions(access_token: str) -> list[str]:
+    channel_ids: list[str] = []
+    page_token = None
 
-    YouTube's subscriptions.list does not return a stable snapshot: the list
-    can shift between page requests, causing different channels to fall through
-    the gaps on each run.  Running the full pagination multiple times and
-    taking the union of all passes maximises coverage.
-    """
-    seen: dict[str, None] = {}  # ordered set
+    while True:
+        params = {"part": "snippet", "mine": "true", "maxResults": "50"}
+        if page_token:
+            params["pageToken"] = page_token
 
-    for pass_num in range(1, passes + 1):
-        print(f"  Pass {pass_num}/{passes}...")
-        channel_ids: list[str] = []
-        page_token = None
-        api_total: int | None = None
-        page_num = 0
+        data = youtube_get(access_token, "subscriptions", params)
 
-        while True:
-            params = {"part": "snippet", "mine": "true", "maxResults": "50"}
-            if page_token:
-                params["pageToken"] = page_token
+        for item in data.get("items", []):
+            channel_ids.append(item["snippet"]["resourceId"]["channelId"])
 
-            data = youtube_get(access_token, "subscriptions", params)
-            page_num += 1
-            items = data.get("items", [])
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
 
-            if api_total is None:
-                api_total = data.get("pageInfo", {}).get("totalResults")
-
-            for item in items:
-                channel_ids.append(item["snippet"]["resourceId"]["channelId"])
-
-            next_token = data.get("nextPageToken")
-            print(f"    page {page_num:>3}: {len(items):>2} items, nextPageToken={'yes' if next_token else 'NO (last page)'}")
-
-            page_token = next_token
-            if not page_token:
-                break
-
-        before = len(seen)
-        for cid in channel_ids:
-            seen[cid] = None
-        new_ids = len(seen) - before
-        print(f"  Pass {pass_num} complete: {len(channel_ids)} IDs ({new_ids} new), running total: {len(seen)} (API reported total: {api_total})")
-
-    return list(seen.keys())
+    return channel_ids
 
 
 def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
