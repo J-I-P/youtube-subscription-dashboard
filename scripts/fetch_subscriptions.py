@@ -76,18 +76,14 @@ def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
     raise RuntimeError("unreachable")
 
 
-def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list[str], int | None]:
-    """Fetch all subscription channel IDs using a specific sort order.
-
-    Returns (channel_ids, api_reported_total).
-    """
+def fetch_all_subscriptions(access_token: str) -> list[str]:
     channel_ids: list[str] = []
     page_token = None
     api_total: int | None = None
     page_num = 0
 
     while True:
-        params = {"part": "snippet", "mine": "true", "maxResults": "50", "order": order}
+        params = {"part": "snippet", "mine": "true", "maxResults": "50"}
         if page_token:
             params["pageToken"] = page_token
 
@@ -108,35 +104,8 @@ def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list
         if not page_token:
             break
 
-    return channel_ids, api_total
-
-
-def fetch_all_subscriptions(access_token: str) -> list[str]:
-    """Fetch subscription channel IDs using all available sort orders and union the results.
-
-    YouTube's subscriptions.list API silently truncates results for accounts
-    with many subscriptions, and the truncation point differs between orderings.
-    Fetching with all three supported orderings and taking the union maximises
-    the number of channels retrieved.
-
-    Note: pageInfo.totalResults is documented as an *approximation* and is
-    not a reliable verification of completeness.
-    """
-    orders = ["relevance", "alphabetical", "unread"]
-    seen: dict[str, None] = {}  # ordered set via dict
-
-    for order in orders:
-        print(f"  Fetching with order={order}...")
-        ids, total = _fetch_subscriptions_with_order(access_token, order)
-        before = len(seen)
-        for cid in ids:
-            seen[cid] = None
-        new_ids = len(seen) - before
-        print(f"  order={order:<12} → {len(ids)} IDs (API reported total: {total}, +{new_ids} new)")
-
-    union_ids = list(seen.keys())
-    print(f"  Union across all orderings: {len(union_ids)} unique channel IDs")
-    return union_ids
+    print(f"  Total: {len(channel_ids)} IDs across {page_num} pages (API reported total: {api_total})")
+    return channel_ids
 
 
 def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
