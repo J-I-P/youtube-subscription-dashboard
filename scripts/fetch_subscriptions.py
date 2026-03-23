@@ -18,6 +18,7 @@ Usage:
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,20 +48,38 @@ def get_access_token() -> str:
     return resp.json()["access_token"]
 
 
+_RETRY_STATUS_CODES = {429, 500, 502, 503, 504}
+_MAX_RETRIES = 5
+
+
 def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
-    resp = requests.get(
-        f"https://www.googleapis.com/youtube/v3/{endpoint}",
-        headers={"Authorization": f"Bearer {access_token}"},
-        params=params,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    url = f"https://www.googleapis.com/youtube/v3/{endpoint}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    delay = 2.0
+
+    for attempt in range(1, _MAX_RETRIES + 1):
+        resp = requests.get(url, headers=headers, params=params, timeout=30)
+
+        if resp.status_code not in _RETRY_STATUS_CODES:
+            resp.raise_for_status()
+            return resp.json()
+
+        if attempt == _MAX_RETRIES:
+            resp.raise_for_status()
+
+        retry_after = resp.headers.get("Retry-After")
+        wait = float(retry_after) if retry_after else delay
+        print(f"  Rate-limited (HTTP {resp.status_code}), retrying in {wait:.0f}s (attempt {attempt}/{_MAX_RETRIES})...")
+        time.sleep(wait)
+        delay = min(delay * 2, 60)
+
+    raise RuntimeError("unreachable")
 
 
 def fetch_all_subscriptions(access_token: str) -> list[str]:
     channel_ids = []
     page_token = None
+    api_total: int | None = None
 
     while True:
         params = {"part": "snippet", "mine": "true", "maxResults": "50"}
@@ -68,6 +87,10 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
             params["pageToken"] = page_token
 
         data = youtube_get(access_token, "subscriptions", params)
+
+        if api_total is None:
+            api_total = data.get("pageInfo", {}).get("totalResults")
+
         for item in data.get("items", []):
             channel_ids.append(item["snippet"]["resourceId"]["channelId"])
 
@@ -75,51 +98,84 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
         if not page_token:
             break
 
+    if api_total is not None and api_total != len(channel_ids):
+        print(
+            f"WARNING: YouTube API reports {api_total} subscriptions "
+            f"but only {len(channel_ids)} IDs were retrieved via pagination. "
+            f"Missing: {api_total - len(channel_ids)}"
+        )
+    else:
+        print(f"Subscription ID count matches API total: {len(channel_ids)}")
+
     return channel_ids
 
 
 def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
     channels = []
+    returned_ids: set[str] = set()
 
     for i in range(0, len(channel_ids), 50):
         batch = channel_ids[i : i + 50]
-        data = youtube_get(
-            access_token,
-            "channels",
-            {"part": "snippet,statistics", "id": ",".join(batch), "maxResults": "50"},
+        page_token = None
+
+        while True:
+            params: dict = {
+                "part": "snippet,statistics",
+                "id": ",".join(batch),
+                "maxResults": "50",
+            }
+            if page_token:
+                params["pageToken"] = page_token
+
+            data = youtube_get(access_token, "channels", params)
+
+            for item in data.get("items", []):
+                returned_ids.add(item["id"])
+                snippet = item.get("snippet", {})
+                stats = item.get("statistics", {})
+                thumbnails = snippet.get("thumbnails", {})
+                thumbnail_url = (
+                    thumbnails.get("high", {}).get("url")
+                    or thumbnails.get("medium", {}).get("url")
+                    or thumbnails.get("default", {}).get("url")
+                    or ""
+                )
+
+                channels.append(
+                    {
+                        "id": item["id"],
+                        "title": snippet.get("title", ""),
+                        "description": snippet.get("description", ""),
+                        "thumbnailUrl": thumbnail_url,
+                        "subscriberCount": int(stats["subscriberCount"])
+                        if stats.get("subscriberCount")
+                        else None,
+                        "videoCount": int(stats["videoCount"])
+                        if stats.get("videoCount")
+                        else None,
+                        "viewCount": int(stats["viewCount"])
+                        if stats.get("viewCount")
+                        else None,
+                        "publishedAt": snippet.get("publishedAt", ""),
+                        "customUrl": snippet.get("customUrl") or None,
+                        "country": snippet.get("country") or None,
+                    }
+                )
+
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+
+    missing_ids = [cid for cid in channel_ids if cid not in returned_ids]
+    if missing_ids:
+        print(
+            f"WARNING: {len(missing_ids)} channel(s) were subscribed but not returned "
+            f"by channels.list (likely deleted, private, or terminated):"
         )
-
-        for item in data.get("items", []):
-            snippet = item.get("snippet", {})
-            stats = item.get("statistics", {})
-            thumbnails = snippet.get("thumbnails", {})
-            thumbnail_url = (
-                thumbnails.get("high", {}).get("url")
-                or thumbnails.get("medium", {}).get("url")
-                or thumbnails.get("default", {}).get("url")
-                or ""
-            )
-
-            channels.append(
-                {
-                    "id": item["id"],
-                    "title": snippet.get("title", ""),
-                    "description": snippet.get("description", ""),
-                    "thumbnailUrl": thumbnail_url,
-                    "subscriberCount": int(stats["subscriberCount"])
-                    if stats.get("subscriberCount")
-                    else None,
-                    "videoCount": int(stats["videoCount"])
-                    if stats.get("videoCount")
-                    else None,
-                    "viewCount": int(stats["viewCount"])
-                    if stats.get("viewCount")
-                    else None,
-                    "publishedAt": snippet.get("publishedAt", ""),
-                    "customUrl": snippet.get("customUrl") or None,
-                    "country": snippet.get("country") or None,
-                }
-            )
+        for cid in missing_ids:
+            print(f"  - {cid}")
+    else:
+        print("All subscribed channel IDs were returned by channels.list.")
 
     return channels
 
@@ -130,14 +186,22 @@ def main():
 
     print("Fetching subscriptions...")
     channel_ids = fetch_all_subscriptions(access_token)
-    print(f"Found {len(channel_ids)} subscriptions")
+    subscribed_count = len(channel_ids)
+    print(f"Found {subscribed_count} subscription IDs")
 
     print("Fetching channel details...")
     channels = fetch_channel_details(access_token, channel_ids)
     channels.sort(key=lambda c: c["title"].lower())
 
+    if subscribed_count != len(channels):
+        print(
+            f"SUMMARY: {subscribed_count} subscriptions → {len(channels)} channels with details "
+            f"({subscribed_count - len(channels)} skipped by YouTube API)"
+        )
+
     payload = {
         "lastUpdated": datetime.now(timezone.utc).isoformat(),
+        "subscribedChannelCount": subscribed_count,
         "totalCount": len(channels),
         "channels": channels,
     }

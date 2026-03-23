@@ -13,6 +13,9 @@ export interface Channel {
 
 export interface SubscriptionsData {
   lastUpdated: string;
+  /** Number of subscription IDs returned by the YouTube subscriptions.list API */
+  subscribedChannelCount?: number;
+  /** Number of channels with successfully fetched details (may be less than subscribedChannelCount) */
   totalCount: number;
   channels: Channel[];
 }
