@@ -1,3 +1,5 @@
+import { MdSearch } from "react-icons/md";
+
 interface Props {
   value: string;
   onChange: (value: string) => void;
@@ -7,7 +9,7 @@ export function SearchBar({ value, onChange }: Props) {
   return (
     <div className="relative">
       <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-        🔍
+        <MdSearch className="text-lg" />
       </span>
       <input
         type="search"

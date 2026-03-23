@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { MdSubscriptions } from "react-icons/md";
 import { ChannelCard } from "./components/ChannelCard";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey } from "./components/SortBar";
@@ -28,7 +29,7 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
-          <span className="text-2xl">▶️</span>
+          <MdSubscriptions className="text-2xl text-red-600" />
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             YouTube Subscriptions
           </h1>
