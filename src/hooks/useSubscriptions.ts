@@ -10,7 +10,7 @@ export function useSubscriptions() {
 
   useEffect(() => {
     setStatus("loading");
-    fetch("/data/subscriptions.json")
+    fetch(import.meta.env.BASE_URL + "data/subscriptions.json")
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<SubscriptionsData>;
