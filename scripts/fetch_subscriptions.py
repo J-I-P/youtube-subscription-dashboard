@@ -106,41 +106,30 @@ def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list
 
 
 def fetch_all_subscriptions(access_token: str) -> list[str]:
-    """Fetch subscription channel IDs using two sort orders and union the results.
+    """Fetch subscription channel IDs using all available sort orders and union the results.
 
-    YouTube's subscriptions.list API is known to silently truncate results
-    for accounts with many subscriptions.  The truncation point can differ
-    between orderings, so fetching with both 'relevance' and 'alphabetical'
-    and taking the union maximises coverage.
+    YouTube's subscriptions.list API silently truncates results for accounts
+    with many subscriptions, and the truncation point differs between orderings.
+    Fetching with all three supported orderings and taking the union maximises
+    the number of channels retrieved.
 
     Note: pageInfo.totalResults is documented as an *approximation* and is
     not a reliable verification of completeness.
     """
-    print("  Fetching with order=relevance...")
-    ids_relevance, total_relevance = _fetch_subscriptions_with_order(access_token, "relevance")
-    print(f"  order=relevance  → {len(ids_relevance)} IDs (API reported total: {total_relevance})")
+    orders = ["relevance", "alphabetical", "unread"]
+    seen: dict[str, None] = {}  # ordered set via dict
 
-    print("  Fetching with order=alphabetical...")
-    ids_alpha, total_alpha = _fetch_subscriptions_with_order(access_token, "alphabetical")
-    print(f"  order=alphabetical → {len(ids_alpha)} IDs (API reported total: {total_alpha})")
+    for order in orders:
+        print(f"  Fetching with order={order}...")
+        ids, total = _fetch_subscriptions_with_order(access_token, order)
+        before = len(seen)
+        for cid in ids:
+            seen[cid] = None
+        new_ids = len(seen) - before
+        print(f"  order={order:<12} → {len(ids)} IDs (API reported total: {total}, +{new_ids} new)")
 
-    union_ids = list(dict.fromkeys(ids_relevance + ids_alpha))  # dedupe, preserve first-seen order
-
-    extra = len(union_ids) - len(ids_relevance)
-    if extra > 0:
-        print(f"  Union found {extra} additional channel(s) not returned by order=relevance alone.")
-    else:
-        print("  Both orderings returned the same channel set.")
-
-    # Warn if the union is still below the API-reported total (which is approximate).
-    reported = total_relevance or total_alpha
-    if reported and union_ids and len(union_ids) < reported:
-        print(
-            f"WARNING: API reports ~{reported} subscriptions but only {len(union_ids)} unique IDs "
-            f"were retrieved across both orderings. The reported total may be an approximation, "
-            f"or the API may be truncating results."
-        )
-
+    union_ids = list(seen.keys())
+    print(f"  Union across all orderings: {len(union_ids)} unique channel IDs")
     return union_ids
 
 
