@@ -84,6 +84,7 @@ def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list
     channel_ids: list[str] = []
     page_token = None
     api_total: int | None = None
+    page_num = 0
 
     while True:
         params = {"part": "snippet", "mine": "true", "maxResults": "50", "order": order}
@@ -91,14 +92,19 @@ def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list
             params["pageToken"] = page_token
 
         data = youtube_get(access_token, "subscriptions", params)
+        page_num += 1
+        items = data.get("items", [])
 
         if api_total is None:
             api_total = data.get("pageInfo", {}).get("totalResults")
 
-        for item in data.get("items", []):
+        for item in items:
             channel_ids.append(item["snippet"]["resourceId"]["channelId"])
 
-        page_token = data.get("nextPageToken")
+        next_token = data.get("nextPageToken")
+        print(f"    page {page_num:>3}: {len(items):>2} items, nextPageToken={'yes' if next_token else 'NO (last page)'}")
+
+        page_token = next_token
         if not page_token:
             break
 
