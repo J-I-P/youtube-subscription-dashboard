@@ -76,13 +76,17 @@ def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
     raise RuntimeError("unreachable")
 
 
-def fetch_all_subscriptions(access_token: str) -> list[str]:
-    channel_ids = []
+def _fetch_subscriptions_with_order(access_token: str, order: str) -> tuple[list[str], int | None]:
+    """Fetch all subscription channel IDs using a specific sort order.
+
+    Returns (channel_ids, api_reported_total).
+    """
+    channel_ids: list[str] = []
     page_token = None
     api_total: int | None = None
 
     while True:
-        params = {"part": "snippet", "mine": "true", "maxResults": "50"}
+        params = {"part": "snippet", "mine": "true", "maxResults": "50", "order": order}
         if page_token:
             params["pageToken"] = page_token
 
@@ -98,16 +102,46 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
         if not page_token:
             break
 
-    if api_total is not None and api_total != len(channel_ids):
-        print(
-            f"WARNING: YouTube API reports {api_total} subscriptions "
-            f"but only {len(channel_ids)} IDs were retrieved via pagination. "
-            f"Missing: {api_total - len(channel_ids)}"
-        )
-    else:
-        print(f"Subscription ID count matches API total: {len(channel_ids)}")
+    return channel_ids, api_total
 
-    return channel_ids
+
+def fetch_all_subscriptions(access_token: str) -> list[str]:
+    """Fetch subscription channel IDs using two sort orders and union the results.
+
+    YouTube's subscriptions.list API is known to silently truncate results
+    for accounts with many subscriptions.  The truncation point can differ
+    between orderings, so fetching with both 'relevance' and 'alphabetical'
+    and taking the union maximises coverage.
+
+    Note: pageInfo.totalResults is documented as an *approximation* and is
+    not a reliable verification of completeness.
+    """
+    print("  Fetching with order=relevance...")
+    ids_relevance, total_relevance = _fetch_subscriptions_with_order(access_token, "relevance")
+    print(f"  order=relevance  → {len(ids_relevance)} IDs (API reported total: {total_relevance})")
+
+    print("  Fetching with order=alphabetical...")
+    ids_alpha, total_alpha = _fetch_subscriptions_with_order(access_token, "alphabetical")
+    print(f"  order=alphabetical → {len(ids_alpha)} IDs (API reported total: {total_alpha})")
+
+    union_ids = list(dict.fromkeys(ids_relevance + ids_alpha))  # dedupe, preserve first-seen order
+
+    extra = len(union_ids) - len(ids_relevance)
+    if extra > 0:
+        print(f"  Union found {extra} additional channel(s) not returned by order=relevance alone.")
+    else:
+        print("  Both orderings returned the same channel set.")
+
+    # Warn if the union is still below the API-reported total (which is approximate).
+    reported = total_relevance or total_alpha
+    if reported and union_ids and len(union_ids) < reported:
+        print(
+            f"WARNING: API reports ~{reported} subscriptions but only {len(union_ids)} unique IDs "
+            f"were retrieved across both orderings. The reported total may be an approximation, "
+            f"or the API may be truncating results."
+        )
+
+    return union_ids
 
 
 def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
