@@ -3,6 +3,7 @@ import type React from "react";
 import { FiActivity, FiFilm, FiUsers } from "react-icons/fi";
 import {
   ArcElement,
+  BarElement,
   CategoryScale,
   Chart as ChartJS,
   Filler,
@@ -12,11 +13,12 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
-import { Doughnut, Line } from "react-chartjs-2";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
 import type { Channel } from "../types/youtube";
 
 ChartJS.register(
   ArcElement,
+  BarElement,
   CategoryScale,
   Filler,
   Legend,
@@ -182,6 +184,82 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     },
   };
 
+  // Subscriber scale buckets
+  const subBuckets = [
+    { label: "< 1K", min: 0, max: 1_000 },
+    { label: "1K–10K", min: 1_000, max: 10_000 },
+    { label: "10K–100K", min: 10_000, max: 100_000 },
+    { label: "100K–1M", min: 100_000, max: 1_000_000 },
+    { label: "1M+", min: 1_000_000, max: Infinity },
+  ];
+  const subBucketCounts = subBuckets.map(
+    ({ min, max }) =>
+      channels.filter((c) => c.subscriberCount != null && c.subscriberCount >= min && c.subscriberCount < max).length
+  );
+  const subBucketColors = ["#2563eb", "#0891b2", "#16a34a", "#d97706", "#dc2626"];
+
+  const subBarData = {
+    labels: subBuckets.map((b) => b.label),
+    datasets: [
+      {
+        data: subBucketCounts,
+        backgroundColor: subBucketColors,
+        borderRadius: 6,
+        borderSkipped: false as const,
+      },
+    ],
+  };
+
+  const barOptions = {
+    responsive: true,
+    animation: false as const,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: { parsed: { y: number } }) =>
+            ` ${ctx.parsed.y.toLocaleString()} 個頻道（${((ctx.parsed.y / totalCount) * 100).toFixed(1)}%）`,
+        },
+      },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+      y: { grid: { color: "rgba(156,163,175,0.2)" }, ticks: { font: { size: 11 } } },
+    },
+  };
+
+  // Update frequency buckets
+  const now = Date.now();
+  const freqBuckets = [
+    { label: "本週內", maxDays: 7 },
+    { label: "本月內", maxDays: 30 },
+    { label: "3 個月內", maxDays: 90 },
+    { label: "6 個月內", maxDays: 180 },
+    { label: "超過 6 個月", maxDays: Infinity },
+  ];
+  const freqCounts = freqBuckets.map(({ maxDays }, i) => {
+    const prevMax = freqBuckets[i - 1]?.maxDays ?? 0;
+    return channels.filter((c) => {
+      if (!c.lastVideo) return maxDays === Infinity;
+      const days = (now - new Date(c.lastVideo.publishedAt).getTime()) / 86400_000;
+      return days >= prevMax && (maxDays === Infinity ? true : days < maxDays);
+    }).length;
+  });
+  const freqColors = ["#16a34a", "#65a30d", "#d97706", "#ea580c", "#dc2626"];
+
+  const freqBarData = {
+    labels: freqBuckets.map((b) => b.label),
+    datasets: [
+      {
+        data: freqCounts,
+        backgroundColor: freqColors,
+        borderRadius: 6,
+        borderSkipped: false as const,
+      },
+    ],
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Stat cards */}
@@ -281,6 +359,22 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
               );
             })}
           </ol>
+        </div>
+      </div>
+
+      {/* Subscriber scale & update frequency */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">訂閱者規模分布</h2>
+          <div style={{ height: 220 }}>
+            <Bar data={subBarData} options={barOptions} />
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">更新頻率分析</h2>
+          <div style={{ height: 220 }}>
+            <Bar data={freqBarData} options={barOptions} />
+          </div>
         </div>
       </div>
 
