@@ -41,6 +41,10 @@ export default function App() {
       let cmp: number;
       if (sort === "title") {
         cmp = a.title.localeCompare(b.title);
+      } else if (sort === "lastVideo") {
+        const aDate = a.lastVideo?.publishedAt ? new Date(a.lastVideo.publishedAt).getTime() : 0;
+        const bDate = b.lastVideo?.publishedAt ? new Date(b.lastVideo.publishedAt).getTime() : 0;
+        cmp = aDate - bDate;
       } else {
         const aVal = a[sort] ?? -1;
         const bVal = b[sort] ?? -1;

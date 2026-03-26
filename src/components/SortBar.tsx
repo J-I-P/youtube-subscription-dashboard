@@ -1,4 +1,4 @@
-export type SortKey = "title" | "subscriberCount" | "videoCount";
+export type SortKey = "title" | "subscriberCount" | "videoCount" | "lastVideo";
 export type SortOrder = "asc" | "desc";
 
 interface Props {
@@ -12,6 +12,7 @@ const OPTIONS: { value: SortKey; label: string }[] = [
   { value: "title", label: "Name" },
   { value: "subscriberCount", label: "Subscribers" },
   { value: "videoCount", label: "Videos" },
+  { value: "lastVideo", label: "Last Video" },
 ];
 
 export function SortBar({ sort, sortOrder, onSortChange, onSortOrderChange }: Props) {
