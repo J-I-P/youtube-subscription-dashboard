@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
 import {
-  CartesianGrid,
-  Cell,
+  ArcElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
   Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
+  LinearScale,
+  LineElement,
+  PointElement,
   Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+} from "chart.js";
+import { Doughnut, Line } from "react-chartjs-2";
 import type { Channel } from "../types/youtube";
+
+ChartJS.register(
+  ArcElement,
+  CategoryScale,
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Tooltip
+);
 
 interface HistoryPoint {
   date: string;
@@ -80,12 +90,49 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     "#0891b2", "#2563eb", "#7c3aed", "#db2777", "#64748b", "#94a3b8",
   ];
 
+  const doughnutData = {
+    labels: pieData.map((d) => d.name),
+    datasets: [
+      {
+        data: pieData.map((d) => d.value),
+        backgroundColor: PIE_COLORS,
+        borderColor: PIE_COLORS.map(() => "transparent"),
+        hoverOffset: 6,
+      },
+    ],
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false as const,
+    cutout: "55%",
+    plugins: {
+      legend: {
+        position: "right" as const,
+        labels: {
+          boxWidth: 12,
+          boxHeight: 12,
+          borderRadius: 6,
+          useBorderRadius: true,
+          padding: 12,
+          font: { size: 12 },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx: { parsed: number; label: string }) =>
+            ` ${ctx.label}: ${ctx.parsed.toLocaleString()} 個頻道（${((ctx.parsed / totalCount) * 100).toFixed(1)}%）`,
+        },
+      },
+    },
+  };
+
   const thisWeekCount = channels.filter((c) => {
     if (!c.lastVideo) return false;
     return Date.now() - new Date(c.lastVideo.publishedAt).getTime() <= 7 * 24 * 60 * 60 * 1000;
   }).length;
 
-  // Format history for chart
   const chartData = history.map((h) => ({
     date: h.date,
     count: h.count,
@@ -95,6 +142,48 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   const firstCount = chartData[0]?.count;
   const lastCount = chartData[chartData.length - 1]?.count;
   const growth = firstCount != null && lastCount != null ? lastCount - firstCount : null;
+
+  const lineData = {
+    labels: chartData.map((d) => d.label),
+    datasets: [
+      {
+        label: "頻道數",
+        data: chartData.map((d) => d.count),
+        borderColor: "#dc2626",
+        backgroundColor: "rgba(220,38,38,0.08)",
+        borderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const lineOptions = {
+    responsive: true,
+    animation: false as const,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: { parsed: { y: number } }) =>
+            ` ${ctx.parsed.y.toLocaleString()} 個頻道`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: "rgba(156,163,175,0.2)" },
+        ticks: { font: { size: 11 } },
+      },
+      y: {
+        grid: { color: "rgba(156,163,175,0.2)" },
+        ticks: { font: { size: 11 } },
+      },
+    },
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -137,101 +226,34 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
             {chartData.length} 筆資料
           </p>
         </div>
-
         {chartData.length < 2 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600 text-sm gap-2">
             <p>資料點不足，無法顯示趨勢圖。</p>
             <p className="text-xs">每週 GitHub Actions 執行後會自動累積資料。</p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11, fill: "currentColor" }}
-                className="text-gray-500 dark:text-gray-400"
-              />
-              <YAxis
-                domain={["auto", "auto"]}
-                tick={{ fontSize: 11, fill: "currentColor" }}
-                className="text-gray-500 dark:text-gray-400"
-                width={50}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "var(--tw-bg-opacity, #fff)",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #e5e7eb",
-                  fontSize: "0.75rem",
-                }}
-                formatter={(value) => [(value as number).toLocaleString(), "頻道數"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="#dc2626"
-                strokeWidth={2}
-                dot={{ r: 3, fill: "#dc2626" }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div style={{ height: 280 }}>
+            <Line data={lineData} options={lineOptions} />
+          </div>
         )}
       </div>
 
-      {/* Country pie chart */}
+      {/* Country doughnut chart */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              頻道地區分布
-            </h2>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              共 {Object.keys(countryCounts).length} 個地區
-              {topCountry && <>，最多為 <span className="font-medium text-gray-600 dark:text-gray-300">{topCountry[0] === "Unknown" ? "未知" : topCountry[0]}</span>（{topCountry[1]} 個頻道）</>}
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            頻道地區分布
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            共 {Object.keys(countryCounts).length} 個地區
+            {topCountry && (
+              <>，最多為 <span className="font-medium text-gray-600 dark:text-gray-300">{topCountry[0] === "Unknown" ? "未知" : topCountry[0]}</span>（{topCountry[1]} 個頻道）</>
+            )}
+          </p>
         </div>
-        <ResponsiveContainer width="100%" height={320}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              innerRadius="40%"
-              outerRadius="65%"
-              paddingAngle={2}
-              dataKey="value"
-              label={({ name, percent }) =>
-                percent > 0.03 ? `${name} ${(percent * 100).toFixed(1)}%` : ""
-              }
-              labelLine={true}
-            >
-              {pieData.map((_, index) => (
-                <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                borderRadius: "0.5rem",
-                border: "1px solid #e5e7eb",
-                fontSize: "0.75rem",
-              }}
-              formatter={(value: number, name: string) => [
-                `${value.toLocaleString()} 個頻道（${((value / totalCount) * 100).toFixed(1)}%）`,
-                name,
-              ]}
-            />
-            <Legend
-              iconType="circle"
-              iconSize={8}
-              formatter={(value) => (
-                <span className="text-xs text-gray-600 dark:text-gray-400">{value}</span>
-              )}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <div style={{ height: 320 }}>
+          <Doughnut data={doughnutData} options={doughnutOptions} />
+        </div>
       </div>
 
       <p className="text-xs text-gray-400 dark:text-gray-500">
