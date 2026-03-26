@@ -1,21 +1,40 @@
 import { useMemo, useState } from "react";
 import { MdSubscriptions } from "react-icons/md";
 import { ChannelCard } from "./components/ChannelCard";
+import { CountryFilter } from "./components/CountryFilter";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey } from "./components/SortBar";
 import { useSubscriptions } from "./hooks/useSubscriptions";
+
+const UNKNOWN = "Unknown";
 
 export default function App() {
   const { data, status, error } = useSubscriptions();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
+  const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
+
+  const availableCountries = useMemo(() => {
+    if (!data) return [];
+    const set = new Set(data.channels.map((c) => c.country ?? UNKNOWN));
+    return [...set].sort((a, b) => {
+      if (a === UNKNOWN) return 1;
+      if (b === UNKNOWN) return -1;
+      return a.localeCompare(b);
+    });
+  }, [data]);
 
   const channels = useMemo(() => {
     if (!data) return [];
 
-    const filtered = data.channels.filter((c) =>
-      c.title.toLowerCase().includes(query.toLowerCase())
-    );
+    const filtered = data.channels.filter((c) => {
+      if (!c.title.toLowerCase().includes(query.toLowerCase())) return false;
+      if (selectedCountries.size > 0) {
+        const countryKey = c.country ?? UNKNOWN;
+        if (!selectedCountries.has(countryKey)) return false;
+      }
+      return true;
+    });
 
     return [...filtered].sort((a, b) => {
       if (sort === "title") return a.title.localeCompare(b.title);
@@ -23,7 +42,16 @@ export default function App() {
       const bVal = b[sort] ?? -1;
       return bVal - aVal;
     });
-  }, [data, query, sort]);
+  }, [data, query, sort, selectedCountries]);
+
+  function toggleCountry(country: string) {
+    setSelectedCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(country)) next.delete(country);
+      else next.add(country);
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -62,6 +90,13 @@ export default function App() {
               </div>
               <SortBar sort={sort} onSortChange={setSort} />
             </div>
+
+            <CountryFilter
+              countries={availableCountries}
+              selected={selectedCountries}
+              onToggle={toggleCountry}
+              onClear={() => setSelectedCountries(new Set())}
+            />
 
             {data.lastUpdated && (
               <p className="text-xs text-gray-400 dark:text-gray-500">
