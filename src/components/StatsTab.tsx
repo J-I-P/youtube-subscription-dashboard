@@ -29,6 +29,14 @@ ChartJS.register(
   Tooltip
 );
 
+/** Render a flag-icons <span> for a 2-letter ISO country code. */
+function FlagIcon({ code, className = "" }: { code: string; className?: string }) {
+  if (!code || code === "Unknown" || code.length !== 2) {
+    return <span className={`text-gray-400 ${className}`}>🏳</span>;
+  }
+  return <span className={`fi fi-${code.toLowerCase()} ${className}`} />;
+}
+
 interface HistoryPoint {
   date: string;
   count: number;
@@ -93,8 +101,12 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   const topCountriesForPie = sortedCountries.slice(0, TOP_N);
   const otherCount = sortedCountries.slice(TOP_N).reduce((sum, [, n]) => sum + n, 0);
   const pieData = [
-    ...topCountriesForPie.map(([name, value]) => ({ name: name === "Unknown" ? t("stats.unknown") : name, value })),
-    ...(otherCount > 0 ? [{ name: t("stats.others"), value: otherCount }] : []),
+    ...topCountriesForPie.map(([name, value]) => ({
+      name: name === "Unknown" ? t("stats.unknown") : name,
+      code: name === "Unknown" ? "" : name,
+      value,
+    })),
+    ...(otherCount > 0 ? [{ name: t("stats.others"), code: "__other__", value: otherCount }] : []),
   ];
   const PIE_COLORS = [
     "#dc2626", "#ea580c", "#d97706", "#65a30d", "#16a34a",
@@ -323,7 +335,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
             {t("stats.countryDist")}
           </h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1 flex-wrap">
             {t("stats.regionCount", { count: Object.keys(countryCounts).length })}
             {topCountry && (
               <>，{t("stats.topCountry", { name: topCountry[0] === "Unknown" ? t("stats.unknown") : topCountry[0], count: topCountry[1] })}</>
@@ -344,6 +356,10 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}
                   />
+                  {item.code && item.code !== "__other__"
+                    ? <FlagIcon code={item.code} className="w-5 h-4 rounded-sm object-cover shrink-0" />
+                    : <span className="text-sm shrink-0">{item.code === "__other__" ? "🌐" : "🏳"}</span>
+                  }
                   <span className="flex-1 truncate text-gray-700 dark:text-gray-300">{item.name}</span>
                   <div className="w-24 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 shrink-0">
                     <div

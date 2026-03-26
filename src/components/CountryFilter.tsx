@@ -1,5 +1,10 @@
 import { useTranslation } from "react-i18next";
 
+function FlagIcon({ code }: { code: string }) {
+  if (!code || code === "Unknown" || code.length !== 2) return null;
+  return <span className={`fi fi-${code.toLowerCase()}`} />;
+}
+
 interface Props {
   countries: string[];
   selected: Set<string>;
@@ -18,12 +23,13 @@ export function CountryFilter({ countries, selected, onToggle, onClear }: Props)
         <button
           key={country}
           onClick={() => onToggle(country)}
-          className={`px-3 py-1 rounded-full border transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${
             selected.has(country)
               ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400"
           }`}
         >
+          <FlagIcon code={country} />
           {country}
         </button>
       ))}

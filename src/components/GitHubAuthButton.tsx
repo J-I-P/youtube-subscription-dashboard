@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MdClose, MdSync } from "react-icons/md";
+import { MdClose, MdLogout, MdSync } from "react-icons/md";
 import type { AuthStatus, GitHubUser } from "../hooks/useGitHubAuth";
 
 interface Props {
@@ -23,7 +23,20 @@ function GitHubIcon() {
 export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToken, onLogout }: Props) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pat, setPat] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownOpen]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,18 +49,34 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
 
   if (status === "authenticated" && user) {
     return (
-      <div className="flex items-center gap-2 ml-auto">
-        {syncing && (
-          <MdSync className="text-gray-400 dark:text-gray-500 animate-spin text-base flex-shrink-0" title={t("auth.syncing")} />
-        )}
-        <img src={user.avatar_url} alt={user.login} className="w-7 h-7 rounded-full flex-shrink-0" />
-        <span className="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">@{user.login}</span>
+      <div className="relative ml-auto" ref={dropdownRef}>
         <button
-          onClick={onLogout}
-          className="text-xs text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          onClick={() => setDropdownOpen((o) => !o)}
+          className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          aria-haspopup="true"
+          aria-expanded={dropdownOpen}
         >
-          {t("auth.logout")}
+          {syncing && (
+            <MdSync className="text-gray-400 dark:text-gray-500 animate-spin text-base flex-shrink-0" title={t("auth.syncing")} />
+          )}
+          <img src={user.avatar_url} alt={user.login} className="w-7 h-7 rounded-full flex-shrink-0" />
+          <span className="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">@{user.login}</span>
+          <svg className="w-3 h-3 text-gray-400 hidden sm:block" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+            <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
+
+        {dropdownOpen && (
+          <div className="absolute right-0 mt-1 w-40 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg py-1 z-50">
+            <button
+              onClick={() => { setDropdownOpen(false); onLogout(); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <MdLogout className="text-base flex-shrink-0" />
+              {t("auth.logout")}
+            </button>
+          </div>
+        )}
       </div>
     );
   }

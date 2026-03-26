@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "chart.js": "^4.5.1",
+    "flag-icons": "^7.5.0",
     "i18next": "^25.10.10",
     "react": "^19.2.4",
     "react-chartjs-2": "^5.3.1",
