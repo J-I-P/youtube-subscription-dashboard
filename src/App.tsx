@@ -3,7 +3,7 @@ import { MdSubscriptions } from "react-icons/md";
 import { ChannelCard } from "./components/ChannelCard";
 import { CountryFilter } from "./components/CountryFilter";
 import { SearchBar } from "./components/SearchBar";
-import { SortBar, type SortKey } from "./components/SortBar";
+import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
@@ -12,6 +12,7 @@ export default function App() {
   const { data, status, error } = useSubscriptions();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
 
   const availableCountries = useMemo(() => {
@@ -37,12 +38,17 @@ export default function App() {
     });
 
     return [...filtered].sort((a, b) => {
-      if (sort === "title") return a.title.localeCompare(b.title);
-      const aVal = a[sort] ?? -1;
-      const bVal = b[sort] ?? -1;
-      return bVal - aVal;
+      let cmp: number;
+      if (sort === "title") {
+        cmp = a.title.localeCompare(b.title);
+      } else {
+        const aVal = a[sort] ?? -1;
+        const bVal = b[sort] ?? -1;
+        cmp = aVal - bVal;
+      }
+      return sortOrder === "asc" ? cmp : -cmp;
     });
-  }, [data, query, sort, selectedCountries]);
+  }, [data, query, sort, sortOrder, selectedCountries]);
 
   function toggleCountry(country: string) {
     setSelectedCountries((prev) => {
@@ -88,7 +94,7 @@ export default function App() {
               <div className="flex-1">
                 <SearchBar value={query} onChange={setQuery} />
               </div>
-              <SortBar sort={sort} onSortChange={setSort} />
+              <SortBar sort={sort} sortOrder={sortOrder} onSortChange={setSort} onSortOrderChange={setSortOrder} />
             </div>
 
             <CountryFilter
