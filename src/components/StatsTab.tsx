@@ -174,8 +174,10 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: { parsed: { y: number } }) =>
-            t("stats.tooltipCount", { count: ctx.parsed.y.toLocaleString(), pct: ((ctx.parsed.y / totalCount) * 100).toFixed(1) }),
+          label: (ctx: { parsed: { y: number | null } }) => {
+            const y = ctx.parsed.y ?? 0;
+            return t("stats.tooltipCount", { count: y.toLocaleString(), pct: ((y / totalCount) * 100).toFixed(1) });
+          },
         },
       },
     },
@@ -225,8 +227,10 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: { parsed: { y: number } }) =>
-            t("stats.tooltipCount", { count: ctx.parsed.y.toLocaleString(), pct: ((ctx.parsed.y / totalCount) * 100).toFixed(1) }),
+          label: (ctx: { parsed: { y: number | null } }) => {
+            const y = ctx.parsed.y ?? 0;
+            return t("stats.tooltipCount", { count: y.toLocaleString(), pct: ((y / totalCount) * 100).toFixed(1) });
+          },
         },
       },
     },
