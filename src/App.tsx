@@ -7,9 +7,17 @@ import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
+type Tab = "all" | "this-week";
+
+function isThisWeek(dateStr: string): boolean {
+  const now = Date.now();
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  return now - new Date(dateStr).getTime() <= sevenDays;
+}
 
 export default function App() {
   const { data, status, error } = useSubscriptions();
+  const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -25,10 +33,20 @@ export default function App() {
     });
   }, [data]);
 
+  const thisWeekCount = useMemo(() => {
+    if (!data) return 0;
+    return data.channels.filter(
+      (c) => c.lastVideo && isThisWeek(c.lastVideo.publishedAt)
+    ).length;
+  }, [data]);
+
   const channels = useMemo(() => {
     if (!data) return [];
 
     const filtered = data.channels.filter((c) => {
+      if (tab === "this-week") {
+        if (!c.lastVideo || !isThisWeek(c.lastVideo.publishedAt)) return false;
+      }
       if (!c.title.toLowerCase().includes(query.toLowerCase())) return false;
       if (selectedCountries.size > 0) {
         const countryKey = c.country ?? UNKNOWN;
@@ -52,7 +70,7 @@ export default function App() {
       }
       return sortOrder === "asc" ? cmp : -cmp;
     });
-  }, [data, query, sort, sortOrder, selectedCountries]);
+  }, [data, tab, query, sort, sortOrder, selectedCountries]);
 
   function toggleCountry(country: string) {
     setSelectedCountries((prev) => {
@@ -94,6 +112,38 @@ export default function App() {
 
         {status === "success" && data && (
           <>
+            {/* Tabs */}
+            <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setTab("all")}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  tab === "all"
+                    ? "text-red-600 border-b-2 border-red-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                全部頻道
+                <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
+                  {data.totalCount}
+                </span>
+              </button>
+              <button
+                onClick={() => setTab("this-week")}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  tab === "this-week"
+                    ? "text-red-600 border-b-2 border-red-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                本週更新
+                {thisWeekCount > 0 && (
+                  <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 px-1.5 py-0.5 min-w-[1.25rem]">
+                    {thisWeekCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <SearchBar value={query} onChange={setQuery} />
@@ -120,7 +170,9 @@ export default function App() {
 
             {channels.length === 0 ? (
               <p className="text-center text-gray-500 dark:text-gray-400 py-20">
-                No channels match &ldquo;{query}&rdquo;
+                {tab === "this-week" && !query
+                  ? "本週沒有頻道更新影片。"
+                  : `No channels match "${query}"`}
               </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
