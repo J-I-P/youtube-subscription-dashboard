@@ -77,8 +77,9 @@ def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
     raise RuntimeError("unreachable")
 
 
-def fetch_all_subscriptions(access_token: str) -> list[str]:
-    channel_ids: list[str] = []
+def fetch_all_subscriptions(access_token: str) -> dict[str, str]:
+    """Return a mapping of channelId -> subscriptionId."""
+    subscriptions: dict[str, str] = {}
     page_token = None
 
     while True:
@@ -89,13 +90,15 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
         data = youtube_get(access_token, "subscriptions", params)
 
         for item in data.get("items", []):
-            channel_ids.append(item["snippet"]["resourceId"]["channelId"])
+            channel_id = item["snippet"]["resourceId"]["channelId"]
+            subscription_id = item["id"]
+            subscriptions[channel_id] = subscription_id
 
         page_token = data.get("nextPageToken")
         if not page_token:
             break
 
-    return channel_ids
+    return subscriptions
 
 
 def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | None:
@@ -142,7 +145,7 @@ def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | No
     }
 
 
-def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
+def fetch_channel_details(access_token: str, channel_ids: list[str], subscription_map: dict[str, str] | None = None) -> list[dict]:
     channels = []
     returned_ids: set[str] = set()
 
@@ -181,6 +184,7 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
                 channels.append(
                     {
                         "id": item["id"],
+                        "subscriptionId": (subscription_map or {}).get(item["id"]),
                         "title": snippet.get("title", ""),
                         "description": snippet.get("description", ""),
                         "thumbnailUrl": thumbnail_url,
@@ -223,12 +227,13 @@ def main():
     access_token = get_access_token()
 
     print("Fetching subscriptions...")
-    channel_ids = fetch_all_subscriptions(access_token)
+    subscription_map = fetch_all_subscriptions(access_token)
+    channel_ids = list(subscription_map.keys())
     subscribed_count = len(channel_ids)
     print(f"Found {subscribed_count} subscription IDs")
 
     print("Fetching channel details...")
-    channels = fetch_channel_details(access_token, channel_ids)
+    channels = fetch_channel_details(access_token, channel_ids, subscription_map)
 
     print("Fetching latest video for each channel...")
     for idx, channel in enumerate(channels, 1):

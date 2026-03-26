@@ -16,6 +16,10 @@ After running, copy the printed values to GitHub Secrets:
   YOUTUBE_CLIENT_ID
   YOUTUBE_CLIENT_SECRET
   YOUTUBE_REFRESH_TOKEN
+
+NOTE: The scope is `youtube` (read + write) to support unsubscribing.
+If you previously used `youtube.readonly`, you must re-run this script
+and update the YOUTUBE_REFRESH_TOKEN secret with the new value.
 """
 
 import json
@@ -23,7 +27,7 @@ from pathlib import Path
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/youtube"]
 CLIENT_SECRET_FILE = "client_secret.json"
 HOST = "127.0.0.1"
 PORT = 8765

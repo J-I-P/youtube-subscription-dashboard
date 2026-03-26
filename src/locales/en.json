@@ -62,7 +62,15 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago",
     "monthsAgo": "{{count}}mo ago",
-    "yearsAgo": "{{count}}y ago"
+    "yearsAgo": "{{count}}y ago",
+    "unsubscribe": "Unsubscribe",
+    "unsubscribeConfirm": "Add \"{{title}}\" to the unsubscribe queue?",
+    "unsubscribeConfirmYes": "Add to queue",
+    "unsubscribeConfirmNo": "Cancel",
+    "unsubscribeQueued": "In unsubscribe queue — will be processed on next workflow run",
+    "unsubscribeTriggered": "Added to unsubscribe queue. Run the unsubscribe workflow in GitHub Actions to process.",
+    "unsubscribeFailed": "Failed to add to queue. Please check your GitHub token.",
+    "unsubscribeNoToken": "Sign in with a GitHub token (gist scope) to use the unsubscribe queue."
   },
   "search": {
     "placeholder": "Search channels..."

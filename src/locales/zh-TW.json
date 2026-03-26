@@ -62,7 +62,15 @@
     "hoursAgo": "{{count}} 小時前",
     "daysAgo": "{{count}} 天前",
     "monthsAgo": "{{count}} 個月前",
-    "yearsAgo": "{{count}} 年前"
+    "yearsAgo": "{{count}} 年前",
+    "unsubscribe": "取消訂閱",
+    "unsubscribeConfirm": "將「{{title}}」加入取消訂閱佇列？",
+    "unsubscribeConfirmYes": "加入佇列",
+    "unsubscribeConfirmNo": "取消",
+    "unsubscribeQueued": "已在取消訂閱佇列中，下次執行 workflow 時將處理",
+    "unsubscribeTriggered": "已加入取消訂閱佇列，請至 GitHub Actions 執行取消訂閱 workflow。",
+    "unsubscribeFailed": "加入佇列失敗，請確認 GitHub Token 有 gist 權限。",
+    "unsubscribeNoToken": "請先登入 GitHub（需要 gist 權限）才能使用取消訂閱佇列。"
   },
   "search": {
     "placeholder": "搜尋頻道…"

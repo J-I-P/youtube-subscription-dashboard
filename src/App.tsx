@@ -11,6 +11,7 @@ import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useGistFavorites } from "./hooks/useGistFavorites";
 import { useGitHubAuth } from "./hooks/useGitHubAuth";
+import { useUnsubscribeQueue } from "./hooks/useUnsubscribeQueue";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { StatsTab } from "./components/StatsTab";
 import { useSubscriptions } from "./hooks/useSubscriptions";
@@ -32,6 +33,7 @@ export default function App() {
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
   const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
+  const { isInQueue, addToQueue, removeFromQueue } = useUnsubscribeQueue(token);
   const [tab, setTab] = useState<Tab>("stats");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
@@ -277,6 +279,10 @@ export default function App() {
                     channel={channel}
                     isFavorite={isFavorite(channel.id)}
                     onToggleFavorite={() => toggleFavorite(channel.id)}
+                    canUnsubscribe={authStatus === "authenticated" && !!token}
+                    isInUnsubscribeQueue={isInQueue(channel.id)}
+                    onUnsubscribe={async () => addToQueue(channel.id)}
+                    onCancelUnsubscribe={() => removeFromQueue(channel.id)}
                   />
                 ))}
               </div>

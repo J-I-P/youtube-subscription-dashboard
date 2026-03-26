@@ -8,6 +8,8 @@ export interface LastVideo {
 
 export interface Channel {
   id: string;
+  /** YouTube subscription resource ID, used for unsubscribing via the API */
+  subscriptionId?: string;
   title: string;
   description: string;
   thumbnailUrl: string;

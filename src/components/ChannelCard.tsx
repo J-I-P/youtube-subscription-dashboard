@@ -9,6 +9,10 @@ interface Props {
   channel: Channel;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onUnsubscribe?: () => Promise<void>;
+  onCancelUnsubscribe?: () => void;
+  canUnsubscribe?: boolean;
+  isInUnsubscribeQueue?: boolean;
 }
 
 function formatCount(n: number | null): string {
@@ -18,10 +22,11 @@ function formatCount(n: number | null): string {
   return String(n);
 }
 
-export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
+export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscribe, onCancelUnsubscribe, canUnsubscribe, isInUnsubscribeQueue }: Props) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const inactive = isChannelInactive(channel);
+  const [unsubState, setUnsubState] = useState<"idle" | "confirm" | "loading" | "done" | "error">("idle");
 
   function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -41,7 +46,10 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
     : `https://youtube.com/channel/${channel.id}`;
 
   useEffect(() => {
-    if (!modalOpen) return;
+    if (!modalOpen) {
+      setUnsubState("idle");
+      return;
+    }
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setModalOpen(false); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -50,6 +58,17 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
       document.body.style.overflow = "";
     };
   }, [modalOpen]);
+
+  async function handleUnsubscribeConfirm() {
+    if (!onUnsubscribe) return;
+    setUnsubState("loading");
+    try {
+      await onUnsubscribe();
+      setUnsubState("done");
+    } catch {
+      setUnsubState("error");
+    }
+  }
 
   return (
     <>
@@ -279,7 +298,80 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
             </div>
 
             {/* Modal footer */}
-            <div className="p-5 border-t border-gray-200 dark:border-gray-700">
+            <div className="p-5 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+              {/* Unsubscribe section */}
+              {channel.subscriptionId && (
+                <>
+                  {isInUnsubscribeQueue ? (
+                    <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+                      <span className="flex-1">⏳ {t("channelCard.unsubscribeQueued")}</span>
+                      <button
+                        onClick={() => onCancelUnsubscribe?.()}
+                        className="text-xs underline hover:no-underline flex-shrink-0"
+                      >
+                        {t("channelCard.unsubscribeConfirmNo")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {unsubState === "idle" && (
+                        <button
+                          onClick={() => canUnsubscribe ? setUnsubState("confirm") : undefined}
+                          disabled={!canUnsubscribe}
+                          title={!canUnsubscribe ? t("channelCard.unsubscribeNoToken") : undefined}
+                          className={`flex items-center justify-center gap-2 w-full rounded-lg border font-semibold py-2.5 px-4 transition-colors text-sm ${
+                            canUnsubscribe
+                              ? "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-red-400 hover:text-red-500 dark:hover:border-red-500 dark:hover:text-red-400"
+                              : "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                          }`}
+                        >
+                          {t("channelCard.unsubscribe")}
+                        </button>
+                      )}
+                      {unsubState === "confirm" && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-sm text-center text-gray-700 dark:text-gray-300">
+                            {t("channelCard.unsubscribeConfirm", { title: channel.title })}
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setUnsubState("idle")}
+                              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-2 text-sm transition-colors"
+                            >
+                              {t("channelCard.unsubscribeConfirmNo")}
+                            </button>
+                            <button
+                              onClick={handleUnsubscribeConfirm}
+                              className="flex-1 rounded-lg bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold py-2 text-sm transition-colors"
+                            >
+                              {t("channelCard.unsubscribeConfirmYes")}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {unsubState === "loading" && (
+                        <div className="flex items-center justify-center gap-2 py-2.5 text-sm text-gray-500 dark:text-gray-400">
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                          {t("channelCard.unsubscribe")}…
+                        </div>
+                      )}
+                      {unsubState === "done" && (
+                        <p className="text-sm text-center text-green-600 dark:text-green-400 py-1">
+                          ✓ {t("channelCard.unsubscribeTriggered")}
+                        </p>
+                      )}
+                      {unsubState === "error" && (
+                        <p className="text-sm text-center text-red-500 py-1">
+                          {t("channelCard.unsubscribeFailed")}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
               <a
                 href={channelUrl}
                 target="_blank"
