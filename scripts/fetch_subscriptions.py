@@ -97,6 +97,38 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
     return channel_ids
 
 
+def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | None:
+    """Return the latest video's id, title, publishedAt, and url, or None if unavailable."""
+    try:
+        data = youtube_get(
+            access_token,
+            "playlistItems",
+            {
+                "part": "snippet",
+                "playlistId": uploads_playlist_id,
+                "maxResults": "1",
+            },
+        )
+    except Exception:
+        return None
+
+    items = data.get("items", [])
+    if not items:
+        return None
+
+    snippet = items[0].get("snippet", {})
+    video_id = snippet.get("resourceId", {}).get("videoId")
+    if not video_id:
+        return None
+
+    return {
+        "id": video_id,
+        "title": snippet.get("title", ""),
+        "publishedAt": snippet.get("publishedAt", ""),
+        "url": f"https://www.youtube.com/watch?v={video_id}",
+    }
+
+
 def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
     channels = []
     returned_ids: set[str] = set()
@@ -107,7 +139,7 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
 
         while True:
             params: dict = {
-                "part": "snippet,statistics",
+                "part": "snippet,statistics,contentDetails",
                 "id": ",".join(batch),
                 "maxResults": "50",
             }
@@ -126,6 +158,11 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
                     or thumbnails.get("medium", {}).get("url")
                     or thumbnails.get("default", {}).get("url")
                     or ""
+                )
+                uploads_playlist_id = (
+                    item.get("contentDetails", {})
+                    .get("relatedPlaylists", {})
+                    .get("uploads")
                 )
 
                 channels.append(
@@ -146,6 +183,7 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
                         "publishedAt": snippet.get("publishedAt", ""),
                         "customUrl": snippet.get("customUrl") or None,
                         "country": snippet.get("country") or None,
+                        "_uploadsPlaylistId": uploads_playlist_id,
                     }
                 )
 
@@ -178,6 +216,17 @@ def main():
 
     print("Fetching channel details...")
     channels = fetch_channel_details(access_token, channel_ids)
+
+    print("Fetching latest video for each channel...")
+    for idx, channel in enumerate(channels, 1):
+        playlist_id = channel.pop("_uploadsPlaylistId", None)
+        if playlist_id:
+            channel["lastVideo"] = fetch_latest_video(access_token, playlist_id)
+        else:
+            channel["lastVideo"] = None
+        if idx % 50 == 0:
+            print(f"  {idx}/{len(channels)} done...")
+
     channels.sort(key=lambda c: c["title"].lower())
 
     if subscribed_count != len(channels):

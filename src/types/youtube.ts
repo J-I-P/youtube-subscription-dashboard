@@ -1,3 +1,10 @@
+export interface LastVideo {
+  id: string;
+  title: string;
+  publishedAt: string;
+  url: string;
+}
+
 export interface Channel {
   id: string;
   title: string;
@@ -9,6 +16,7 @@ export interface Channel {
   publishedAt: string;
   customUrl: string | null;
   country: string | null;
+  lastVideo: LastVideo | null;
 }
 
 export interface SubscriptionsData {
