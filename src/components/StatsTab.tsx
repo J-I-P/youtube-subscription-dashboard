@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   CartesianGrid,
+  Cell,
+  Legend,
   Line,
   LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -60,7 +64,21 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
-  const topCountry = Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0];
+  const sortedCountries = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
+  const topCountry = sortedCountries[0];
+
+  // Pie chart: top 10 countries + "其他"
+  const TOP_N = 10;
+  const topCountriesForPie = sortedCountries.slice(0, TOP_N);
+  const otherCount = sortedCountries.slice(TOP_N).reduce((sum, [, n]) => sum + n, 0);
+  const pieData = [
+    ...topCountriesForPie.map(([name, value]) => ({ name: name === "Unknown" ? "未知" : name, value })),
+    ...(otherCount > 0 ? [{ name: "其他", value: otherCount }] : []),
+  ];
+  const PIE_COLORS = [
+    "#dc2626", "#ea580c", "#d97706", "#65a30d", "#16a34a",
+    "#0891b2", "#2563eb", "#7c3aed", "#db2777", "#64748b", "#94a3b8",
+  ];
 
   const thisWeekCount = channels.filter((c) => {
     if (!c.lastVideo) return false;
@@ -81,7 +99,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="訂閱頻道總數" value={totalCount.toLocaleString()} />
         <StatCard
           label="本週有更新"
@@ -92,11 +110,6 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
           label="有影片的頻道"
           value={channelsWithVideo.toLocaleString()}
           sub={`佔 ${((channelsWithVideo / totalCount) * 100).toFixed(1)}%`}
-        />
-        <StatCard
-          label="最多頻道的地區"
-          value={topCountry ? topCountry[0] : "—"}
-          sub={topCountry ? `${topCountry[1]} 個頻道` : undefined}
         />
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5 flex flex-col gap-1">
           <p className="text-xs text-amber-600 dark:text-amber-400">⚠ 停更超過 6 個月</p>
@@ -165,6 +178,60 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
             </LineChart>
           </ResponsiveContainer>
         )}
+      </div>
+
+      {/* Country pie chart */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              頻道地區分布
+            </h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              共 {Object.keys(countryCounts).length} 個地區
+              {topCountry && <>，最多為 <span className="font-medium text-gray-600 dark:text-gray-300">{topCountry[0] === "Unknown" ? "未知" : topCountry[0]}</span>（{topCountry[1]} 個頻道）</>}
+            </p>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={320}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              cx="50%"
+              cy="50%"
+              innerRadius="40%"
+              outerRadius="65%"
+              paddingAngle={2}
+              dataKey="value"
+              label={({ name, percent }) =>
+                percent > 0.03 ? `${name} ${(percent * 100).toFixed(1)}%` : ""
+              }
+              labelLine={true}
+            >
+              {pieData.map((_, index) => (
+                <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                borderRadius: "0.5rem",
+                border: "1px solid #e5e7eb",
+                fontSize: "0.75rem",
+              }}
+              formatter={(value: number, name: string) => [
+                `${value.toLocaleString()} 個頻道（${((value / totalCount) * 100).toFixed(1)}%）`,
+                name,
+              ]}
+            />
+            <Legend
+              iconType="circle"
+              iconSize={8}
+              formatter={(value) => (
+                <span className="text-xs text-gray-600 dark:text-gray-400">{value}</span>
+              )}
+            />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
       <p className="text-xs text-gray-400 dark:text-gray-500">
