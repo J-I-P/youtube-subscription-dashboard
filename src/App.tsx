@@ -8,10 +8,11 @@ import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useGistFavorites } from "./hooks/useGistFavorites";
 import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
+import { StatsTab } from "./components/StatsTab";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
-type Tab = "all" | "this-week" | "favorites";
+type Tab = "all" | "this-week" | "favorites" | "stats";
 
 function isThisWeek(dateStr: string): boolean {
   const now = Date.now();
@@ -23,7 +24,7 @@ export default function App() {
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
   const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
-  const [tab, setTab] = useState<Tab>("all");
+  const [tab, setTab] = useState<Tab>("stats");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -132,6 +133,16 @@ export default function App() {
             {/* Tabs */}
             <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
               <button
+                onClick={() => setTab("stats")}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  tab === "stats"
+                    ? "text-red-600 border-b-2 border-red-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                統計趨勢
+              </button>
+              <button
                 onClick={() => setTab("all")}
                 className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "all"
@@ -176,6 +187,14 @@ export default function App() {
               </button>
             </div>
 
+            {tab === "stats" ? (
+              <StatsTab
+                channels={data.channels}
+                totalCount={data.totalCount}
+                lastUpdated={data.lastUpdated}
+              />
+            ) : (
+              <>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <SearchBar value={query} onChange={setQuery} />
@@ -219,6 +238,8 @@ export default function App() {
                   />
                 ))}
               </div>
+            )}
+              </>
             )}
           </>
         )}

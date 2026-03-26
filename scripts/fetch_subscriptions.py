@@ -26,6 +26,7 @@ import requests
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 OUTPUT_FILE = Path("public/data/subscriptions.json")
+HISTORY_FILE = Path("public/data/history.json")
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -258,6 +259,25 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print(f"Written {len(channels)} channels to {OUTPUT_FILE}")
+
+    # Append data point to history.json
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history: list[dict] = []
+    if HISTORY_FILE.exists():
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+
+    # Update today's entry if it already exists, otherwise append
+    existing = next((h for h in history if h["date"] == today), None)
+    if existing:
+        existing["count"] = subscribed_count
+    else:
+        history.append({"date": today, "count": subscribed_count})
+
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+    print(f"Updated history ({len(history)} data points) in {HISTORY_FILE}")
 
 
 if __name__ == "__main__":
