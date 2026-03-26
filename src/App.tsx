@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { MdSubscriptions } from "react-icons/md";
 import { ChannelCard } from "./components/ChannelCard";
 import { CountryFilter } from "./components/CountryFilter";
+import { GitHubAuthButton } from "./components/GitHubAuthButton";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
-import { useFavorites } from "./hooks/useFavorites";
+import { useGistFavorites } from "./hooks/useGistFavorites";
+import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
@@ -18,7 +20,8 @@ function isThisWeek(dateStr: string): boolean {
 
 export default function App() {
   const { data, status, error } = useSubscriptions();
-  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
+  const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
@@ -95,10 +98,18 @@ export default function App() {
             YouTube Subscriptions
           </h1>
           {data && (
-            <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {data.totalCount} channels
             </span>
           )}
+          <GitHubAuthButton
+            status={authStatus}
+            user={user}
+            error={authError}
+            syncing={syncing}
+            onLoginWithToken={loginWithToken}
+            onLogout={logout}
+          />
         </div>
       </header>
 
