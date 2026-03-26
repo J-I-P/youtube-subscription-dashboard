@@ -16,6 +16,7 @@ import {
 } from "chart.js";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import type { Channel } from "../types/youtube";
+import { FlagIcon } from "./FlagIcon";
 
 ChartJS.register(
   ArcElement,
@@ -28,14 +29,6 @@ ChartJS.register(
   PointElement,
   Tooltip
 );
-
-/** Render a flag-icons <span> for a 2-letter ISO country code. */
-function FlagIcon({ code, className = "" }: { code: string; className?: string }) {
-  if (!code || code === "Unknown" || code.length !== 2) {
-    return <span className={`text-gray-400 ${className}`}>🏳</span>;
-  }
-  return <span className={`fi fi-${code.toLowerCase()} ${className}`} />;
-}
 
 interface HistoryPoint {
   date: string;

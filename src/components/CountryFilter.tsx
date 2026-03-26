@@ -1,9 +1,5 @@
 import { useTranslation } from "react-i18next";
-
-function FlagIcon({ code }: { code: string }) {
-  if (!code || code === "Unknown" || code.length !== 2) return null;
-  return <span className={`fi fi-${code.toLowerCase()}`} />;
-}
+import { FlagIcon } from "./FlagIcon";
 
 interface Props {
   countries: string[];
@@ -29,7 +25,7 @@ export function CountryFilter({ countries, selected, onToggle, onClear }: Props)
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400"
           }`}
         >
-          <FlagIcon code={country} />
+          <FlagIcon code={country} className="w-4 h-3 rounded-sm shrink-0" />
           {country}
         </button>
       ))}

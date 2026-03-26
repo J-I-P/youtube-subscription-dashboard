@@ -3,11 +3,7 @@ import { useTranslation } from "react-i18next";
 import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam, MdWarning } from "react-icons/md";
 import { isChannelInactive } from "../channelHealth";
 import type { Channel } from "../types/youtube";
-
-function FlagIcon({ code }: { code: string }) {
-  if (!code || code.length !== 2) return null;
-  return <span className={`fi fi-${code.toLowerCase()} rounded-sm`} style={{ fontSize: "1em" }} />;
-}
+import { FlagIcon } from "./FlagIcon";
 
 interface Props {
   channel: Channel;
@@ -104,7 +100,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
         <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1"><MdGroup /> {formatCount(channel.subscriberCount)}</span>
           <span className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
-          {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} /> {channel.country}</span>}
+          {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} className="w-4 h-3 rounded-sm shrink-0" /> {channel.country}</span>}
         </div>
 
         {/* Inactive warning */}
@@ -187,7 +183,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                 <div className="flex gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                   <span className="flex items-center gap-1"><MdGroup /> {formatCount(channel.subscriberCount)}</span>
                   <span className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
-                  {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} /> {channel.country}</span>}
+                  {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} className="w-4 h-3 rounded-sm shrink-0" /> {channel.country}</span>}
                 </div>
                 {inactive && (
                   <div className="flex items-center gap-1 mt-1.5 text-xs text-amber-600 dark:text-amber-400">
