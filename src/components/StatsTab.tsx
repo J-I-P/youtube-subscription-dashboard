@@ -51,6 +51,10 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
 
   // Compute aggregate stats from channels
   const channelsWithVideo = channels.filter((c) => c.lastVideo).length;
+  const inactiveCount = channels.filter((c) => {
+    if (!c.lastVideo) return true;
+    return Date.now() - new Date(c.lastVideo.publishedAt).getTime() > 180 * 24 * 60 * 60 * 1000;
+  }).length;
   const countryCounts = channels.reduce<Record<string, number>>((acc, c) => {
     const key = c.country ?? "Unknown";
     acc[key] = (acc[key] ?? 0) + 1;
@@ -77,7 +81,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard label="訂閱頻道總數" value={totalCount.toLocaleString()} />
         <StatCard
           label="本週有更新"
@@ -94,6 +98,13 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
           value={topCountry ? topCountry[0] : "—"}
           sub={topCountry ? `${topCountry[1]} 個頻道` : undefined}
         />
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5 flex flex-col gap-1">
+          <p className="text-xs text-amber-600 dark:text-amber-400">⚠ 停更超過 6 個月</p>
+          <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{inactiveCount.toLocaleString()}</p>
+          <p className="text-xs text-amber-500 dark:text-amber-500">
+            佔 {((inactiveCount / totalCount) * 100).toFixed(1)}%，建議考慮取消訂閱
+          </p>
+        </div>
       </div>
 
       {/* Line chart */}

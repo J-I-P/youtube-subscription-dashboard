@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { MdSubscriptions } from "react-icons/md";
+import { isChannelInactive } from "./channelHealth";
 import { ChannelCard } from "./components/ChannelCard";
 import { CountryFilter } from "./components/CountryFilter";
 import { GitHubAuthButton } from "./components/GitHubAuthButton";
@@ -13,7 +14,7 @@ import { useSubscriptions } from "./hooks/useSubscriptions";
 import { LandingPage } from "./LandingPage";
 
 const UNKNOWN = "Unknown";
-type Tab = "all" | "this-week" | "favorites" | "stats";
+type Tab = "all" | "this-week" | "favorites" | "stats" | "inactive";
 
 function isThisWeek(dateStr: string): boolean {
   const now = Date.now();
@@ -49,6 +50,11 @@ export default function App() {
     ).length;
   }, [data]);
 
+  const inactiveCount = useMemo(() => {
+    if (!data) return 0;
+    return data.channels.filter(isChannelInactive).length;
+  }, [data]);
+
   const channels = useMemo(() => {
     if (!data) return [];
 
@@ -58,6 +64,9 @@ export default function App() {
       }
       if (tab === "favorites") {
         if (!isFavorite(c.id)) return false;
+      }
+      if (tab === "inactive") {
+        if (!isChannelInactive(c)) return false;
       }
       if (!c.title.toLowerCase().includes(query.toLowerCase())) return false;
       if (selectedCountries.size > 0) {
@@ -191,6 +200,21 @@ export default function App() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setTab("inactive")}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  tab === "inactive"
+                    ? "text-amber-600 border-b-2 border-amber-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                停更頻道
+                {inactiveCount > 0 && (
+                  <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 min-w-[1.25rem]">
+                    {inactiveCount}
+                  </span>
+                )}
+              </button>
             </div>
 
             {tab === "stats" ? (
@@ -231,6 +255,8 @@ export default function App() {
                   ? "本週沒有頻道更新影片。"
                   : tab === "favorites" && !query
                   ? "還沒有加入最愛的頻道，點擊頻道卡片上的 ♡ 來收藏。"
+                  : tab === "inactive" && !query
+                  ? "目前沒有停更超過 6 個月的頻道，訂閱健康！"
                   : `No channels match "${query}"`}
               </p>
             ) : (

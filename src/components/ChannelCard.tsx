@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam } from "react-icons/md";
+import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam, MdWarning } from "react-icons/md";
+import { isChannelInactive } from "../channelHealth";
 import type { Channel } from "../types/youtube";
 
 interface Props {
@@ -30,6 +31,7 @@ function timeAgo(dateStr: string): string {
 
 export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
+  const inactive = isChannelInactive(channel);
 
   const channelUrl = channel.customUrl
     ? `https://youtube.com/${channel.customUrl}`
@@ -97,6 +99,14 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
           <span title="Videos" className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
           {channel.country && <span title="Country" className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
         </div>
+
+        {/* Inactive warning */}
+        {inactive && (
+          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400">
+            <MdWarning className="flex-shrink-0 text-sm" />
+            <span>超過 6 個月無新影片，考慮取消訂閱</span>
+          </div>
+        )}
 
         {/* Latest video */}
         {channel.lastVideo ? (
@@ -173,6 +183,12 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                   <span className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
                   {channel.country && <span className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
                 </div>
+                {inactive && (
+                  <div className="flex items-center gap-1 mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                    <MdWarning className="flex-shrink-0" />
+                    <span>超過 6 個月無新影片</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => onToggleFavorite()}
