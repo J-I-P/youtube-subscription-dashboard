@@ -10,6 +10,7 @@ import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { StatsTab } from "./components/StatsTab";
 import { useSubscriptions } from "./hooks/useSubscriptions";
+import { LandingPage } from "./LandingPage";
 
 const UNKNOWN = "Unknown";
 type Tab = "all" | "this-week" | "favorites" | "stats";
@@ -21,6 +22,7 @@ function isThisWeek(dateStr: string): boolean {
 }
 
 export default function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
   const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
@@ -81,6 +83,10 @@ export default function App() {
       return sortOrder === "asc" ? cmp : -cmp;
     });
   }, [data, tab, query, sort, sortOrder, selectedCountries, favorites, isFavorite]);
+
+  if (showLanding) {
+    return <LandingPage onEnter={() => setShowLanding(false)} />;
+  }
 
   function toggleCountry(country: string) {
     setSelectedCountries((prev) => {
