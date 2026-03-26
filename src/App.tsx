@@ -156,10 +156,10 @@ export default function App() {
           <>
             {/* Tabs */}
             <div className="flex items-center gap-1 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex gap-1 flex-1">
+              <div className="flex gap-1 flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
                 onClick={() => setTab("stats")}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "stats"
                     ? "text-red-600 border-b-2 border-red-600"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -169,7 +169,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setTab("all")}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "all"
                     ? "text-red-600 border-b-2 border-red-600"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -182,7 +182,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setTab("this-week")}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "this-week"
                     ? "text-red-600 border-b-2 border-red-600"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -197,7 +197,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setTab("favorites")}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "favorites"
                     ? "text-red-600 border-b-2 border-red-600"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -212,7 +212,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setTab("inactive")}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
                   tab === "inactive"
                     ? "text-amber-600 border-b-2 border-amber-600"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -226,7 +226,7 @@ export default function App() {
                 )}
               </button>
               </div>
-              <div className="pb-1"><LangToggle /></div>
+              <div className="pb-1 shrink-0"><LangToggle /></div>
             </div>
 
             {tab === "stats" ? (
