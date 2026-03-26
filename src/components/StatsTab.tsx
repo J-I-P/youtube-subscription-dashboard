@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import type React from "react";
+import { FiActivity, FiFilm, FiUsers } from "react-icons/fi";
 import {
   ArcElement,
   CategoryScale,
@@ -39,14 +41,19 @@ function StatCard({
   label,
   value,
   sub,
+  icon,
 }: {
   label: string;
   value: string;
   sub?: string;
+  icon?: React.ReactNode;
 }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col gap-1">
-      <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+        {icon && <span className="text-gray-300 dark:text-gray-600 text-lg">{icon}</span>}
+      </div>
       <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
       {sub && <p className="text-xs text-gray-400 dark:text-gray-500">{sub}</p>}
     </div>
@@ -179,16 +186,18 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     <div className="flex flex-col gap-6">
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="訂閱頻道總數" value={totalCount.toLocaleString()} />
+        <StatCard label="訂閱頻道總數" value={totalCount.toLocaleString()} icon={<FiUsers />} />
         <StatCard
           label="本週有更新"
           value={thisWeekCount.toLocaleString()}
           sub={`佔 ${((thisWeekCount / totalCount) * 100).toFixed(1)}%`}
+          icon={<FiActivity />}
         />
         <StatCard
           label="有影片的頻道"
           value={channelsWithVideo.toLocaleString()}
           sub={`佔 ${((channelsWithVideo / totalCount) * 100).toFixed(1)}%`}
+          icon={<FiFilm />}
         />
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5 flex flex-col gap-1">
           <p className="text-xs text-amber-600 dark:text-amber-400">⚠ 停更超過 6 個月</p>
