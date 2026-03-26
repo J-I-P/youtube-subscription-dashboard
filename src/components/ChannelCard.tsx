@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MdGroup, MdLocationOn, MdVideocam } from "react-icons/md";
 import type { Channel } from "../types/youtube";
 
@@ -13,6 +14,8 @@ function formatCount(n: number | null): string {
 }
 
 export function ChannelCard({ channel }: Props) {
+  const [expanded, setExpanded] = useState(false);
+
   const channelUrl = channel.customUrl
     ? `https://youtube.com/${channel.customUrl}`
     : `https://youtube.com/channel/${channel.id}`;
@@ -22,20 +25,20 @@ export function ChannelCard({ channel }: Props) {
       href={channelUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-shadow"
+      className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 min-h-56 shadow-sm hover:shadow-md transition-shadow"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {channel.thumbnailUrl ? (
           <img
             src={channel.thumbnailUrl}
             alt={channel.title}
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+            className="w-14 h-14 rounded-full object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+          <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
         )}
         <div className="min-w-0">
-          <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+          <p className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
             {channel.title}
           </p>
           {channel.customUrl && (
@@ -47,9 +50,17 @@ export function ChannelCard({ channel }: Props) {
       </div>
 
       {channel.description && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-          {channel.description}
-        </p>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          <p className={expanded ? undefined : "line-clamp-3"}>
+            {channel.description}
+          </p>
+          <button
+            onClick={(e) => { e.preventDefault(); setExpanded((v) => !v); }}
+            className="mt-1 text-xs text-blue-500 hover:underline block ml-auto"
+          >
+            {expanded ? "收起" : "閱讀更多"}
+          </button>
+        </div>
       )}
 
       <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
