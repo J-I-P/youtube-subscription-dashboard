@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { MdClose, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam } from "react-icons/md";
+import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam } from "react-icons/md";
 import type { Channel } from "../types/youtube";
 
 interface Props {
   channel: Channel;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }
 
 function formatCount(n: number | null): string {
@@ -26,7 +28,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(months / 12)}y ago`;
 }
 
-export function ChannelCard({ channel }: Props) {
+export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const channelUrl = channel.customUrl
@@ -65,7 +67,7 @@ export function ChannelCard({ channel }: Props) {
           ) : (
             <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
               {channel.title}
             </p>
@@ -75,6 +77,18 @@ export function ChannelCard({ channel }: Props) {
               </p>
             )}
           </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            className={`flex-shrink-0 p-1.5 rounded-full transition-colors ${
+              isFavorite
+                ? "text-red-500 hover:text-red-600"
+                : "text-gray-300 dark:text-gray-600 hover:text-red-400"
+            }`}
+            aria-label={isFavorite ? "移除最愛" : "加入最愛"}
+            title={isFavorite ? "移除最愛" : "加入最愛"}
+          >
+            {isFavorite ? <MdFavorite className="text-xl" /> : <MdFavoriteBorder className="text-xl" />}
+          </button>
         </div>
 
         {/* Stats */}
@@ -160,6 +174,18 @@ export function ChannelCard({ channel }: Props) {
                   {channel.country && <span className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
                 </div>
               </div>
+              <button
+                onClick={() => onToggleFavorite()}
+                className={`flex-shrink-0 p-1.5 rounded-full transition-colors ${
+                  isFavorite
+                    ? "text-red-500 hover:text-red-600"
+                    : "text-gray-300 dark:text-gray-600 hover:text-red-400"
+                }`}
+                aria-label={isFavorite ? "移除最愛" : "加入最愛"}
+                title={isFavorite ? "移除最愛" : "加入最愛"}
+              >
+                {isFavorite ? <MdFavorite className="text-xl" /> : <MdFavoriteBorder className="text-xl" />}
+              </button>
               <button
                 onClick={() => setModalOpen(false)}
                 className="flex-shrink-0 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"

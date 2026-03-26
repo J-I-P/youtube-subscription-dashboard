@@ -4,10 +4,11 @@ import { ChannelCard } from "./components/ChannelCard";
 import { CountryFilter } from "./components/CountryFilter";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
+import { useFavorites } from "./hooks/useFavorites";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
-type Tab = "all" | "this-week";
+type Tab = "all" | "this-week" | "favorites";
 
 function isThisWeek(dateStr: string): boolean {
   const now = Date.now();
@@ -17,6 +18,7 @@ function isThisWeek(dateStr: string): boolean {
 
 export default function App() {
   const { data, status, error } = useSubscriptions();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
@@ -47,6 +49,9 @@ export default function App() {
       if (tab === "this-week") {
         if (!c.lastVideo || !isThisWeek(c.lastVideo.publishedAt)) return false;
       }
+      if (tab === "favorites") {
+        if (!isFavorite(c.id)) return false;
+      }
       if (!c.title.toLowerCase().includes(query.toLowerCase())) return false;
       if (selectedCountries.size > 0) {
         const countryKey = c.country ?? UNKNOWN;
@@ -70,7 +75,7 @@ export default function App() {
       }
       return sortOrder === "asc" ? cmp : -cmp;
     });
-  }, [data, tab, query, sort, sortOrder, selectedCountries]);
+  }, [data, tab, query, sort, sortOrder, selectedCountries, favorites, isFavorite]);
 
   function toggleCountry(country: string) {
     setSelectedCountries((prev) => {
@@ -142,6 +147,21 @@ export default function App() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setTab("favorites")}
+                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                  tab === "favorites"
+                    ? "text-red-600 border-b-2 border-red-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                我的最愛
+                {favorites.size > 0 && (
+                  <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 px-1.5 py-0.5 min-w-[1.25rem]">
+                    {favorites.size}
+                  </span>
+                )}
+              </button>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -172,12 +192,19 @@ export default function App() {
               <p className="text-center text-gray-500 dark:text-gray-400 py-20">
                 {tab === "this-week" && !query
                   ? "本週沒有頻道更新影片。"
+                  : tab === "favorites" && !query
+                  ? "還沒有加入最愛的頻道，點擊頻道卡片上的 ♡ 來收藏。"
                   : `No channels match "${query}"`}
               </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {channels.map((channel) => (
-                  <ChannelCard key={channel.id} channel={channel} />
+                  <ChannelCard
+                    key={channel.id}
+                    channel={channel}
+                    isFavorite={isFavorite(channel.id)}
+                    onToggleFavorite={() => toggleFavorite(channel.id)}
+                  />
                 ))}
               </div>
             )}
