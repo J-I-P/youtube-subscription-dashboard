@@ -7,6 +7,7 @@ import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useGistFavorites } from "./hooks/useGistFavorites";
 import { useGitHubAuth } from "./hooks/useGitHubAuth";
+import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 
 const UNKNOWN = "Unknown";
@@ -222,6 +223,7 @@ export default function App() {
           </>
         )}
       </main>
+      <ScrollToTopButton />
     </div>
   );
 }
