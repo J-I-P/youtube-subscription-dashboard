@@ -141,7 +141,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
                   border: "1px solid #e5e7eb",
                   fontSize: "0.75rem",
                 }}
-                formatter={(value: number) => [value.toLocaleString(), "頻道數"]}
+                formatter={(value) => [(value as number).toLocaleString(), "頻道數"]}
               />
               <Line
                 type="monotone"
