@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface Props {
   countries: string[];
   selected: Set<string>;
@@ -6,11 +8,12 @@ interface Props {
 }
 
 export function CountryFilter({ countries, selected, onToggle, onClear }: Props) {
+  const { t } = useTranslation();
   if (countries.length === 0) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm">
-      <span className="text-gray-500 dark:text-gray-400 shrink-0">Country:</span>
+      <span className="text-gray-500 dark:text-gray-400 shrink-0">{t("country.label")}</span>
       {countries.map((country) => (
         <button
           key={country}
@@ -29,7 +32,7 @@ export function CountryFilter({ countries, selected, onToggle, onClear }: Props)
           onClick={onClear}
           className="px-3 py-1 rounded-full border border-dashed border-gray-400 dark:border-gray-500 text-gray-500 dark:text-gray-400 hover:border-gray-600 transition-colors"
         >
-          Clear
+          {t("country.clear")}
         </button>
       )}
     </div>

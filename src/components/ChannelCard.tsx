@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInNew, MdPlayCircle, MdVideocam, MdWarning } from "react-icons/md";
 import { isChannelInactive } from "../channelHealth";
 import type { Channel } from "../types/youtube";
@@ -16,22 +17,23 @@ function formatCount(n: number | null): string {
   return String(n);
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
 export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const inactive = isChannelInactive(channel);
+
+  function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60_000);
+    if (minutes < 60) return t("channelCard.minutesAgo", { count: minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t("channelCard.hoursAgo", { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 30) return t("channelCard.daysAgo", { count: days });
+    const months = Math.floor(days / 30);
+    if (months < 12) return t("channelCard.monthsAgo", { count: months });
+    return t("channelCard.yearsAgo", { count: Math.floor(months / 12) });
+  }
 
   const channelUrl = channel.customUrl
     ? `https://youtube.com/${channel.customUrl}`
@@ -86,8 +88,8 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                 ? "text-red-500 hover:text-red-600"
                 : "text-gray-300 dark:text-gray-600 hover:text-red-400"
             }`}
-            aria-label={isFavorite ? "移除最愛" : "加入最愛"}
-            title={isFavorite ? "移除最愛" : "加入最愛"}
+            aria-label={isFavorite ? t("channelCard.removeFavorite") : t("channelCard.addFavorite")}
+            title={isFavorite ? t("channelCard.removeFavorite") : t("channelCard.addFavorite")}
           >
             {isFavorite ? <MdFavorite className="text-xl" /> : <MdFavoriteBorder className="text-xl" />}
           </button>
@@ -95,16 +97,16 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
 
         {/* Stats */}
         <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-          <span title="Subscribers" className="flex items-center gap-1"><MdGroup /> {formatCount(channel.subscriberCount)}</span>
-          <span title="Videos" className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
-          {channel.country && <span title="Country" className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
+          <span className="flex items-center gap-1"><MdGroup /> {formatCount(channel.subscriberCount)}</span>
+          <span className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
+          {channel.country && <span className="flex items-center gap-1"><MdLocationOn /> {channel.country}</span>}
         </div>
 
         {/* Inactive warning */}
         {inactive && (
           <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400">
             <MdWarning className="flex-shrink-0 text-sm" />
-            <span>超過 6 個月無新影片，考慮取消訂閱</span>
+            <span>{t("channelCard.inactive")}</span>
           </div>
         )}
 
@@ -116,7 +118,6 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="mt-auto rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
-            title="Latest video"
           >
             <div className="relative w-full aspect-video bg-gray-200 dark:bg-gray-700">
               <img
@@ -186,7 +187,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                 {inactive && (
                   <div className="flex items-center gap-1 mt-1.5 text-xs text-amber-600 dark:text-amber-400">
                     <MdWarning className="flex-shrink-0" />
-                    <span>超過 6 個月無新影片</span>
+                    <span>{t("channelCard.inactiveShort")}</span>
                   </div>
                 )}
               </div>
@@ -197,15 +198,15 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                     ? "text-red-500 hover:text-red-600"
                     : "text-gray-300 dark:text-gray-600 hover:text-red-400"
                 }`}
-                aria-label={isFavorite ? "移除最愛" : "加入最愛"}
-                title={isFavorite ? "移除最愛" : "加入最愛"}
+                aria-label={isFavorite ? t("channelCard.removeFavorite") : t("channelCard.addFavorite")}
+                title={isFavorite ? t("channelCard.removeFavorite") : t("channelCard.addFavorite")}
               >
                 {isFavorite ? <MdFavorite className="text-xl" /> : <MdFavoriteBorder className="text-xl" />}
               </button>
               <button
                 onClick={() => setModalOpen(false)}
                 className="flex-shrink-0 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Close"
+                aria-label={t("channelCard.close")}
               >
                 <MdClose className="text-xl" />
               </button>
@@ -217,7 +218,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
               {channel.lastVideo && (
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
-                    最新影片
+                    {t("channelCard.latestVideo")}
                   </p>
                   <a
                     href={channel.lastVideo.url}
@@ -262,7 +263,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
               {/* Description */}
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
-                  頻道描述
+                  {t("channelCard.description")}
                 </p>
                 {channel.description ? (
                   <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
@@ -270,7 +271,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                   </p>
                 ) : (
                   <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-                    此頻道沒有提供描述。
+                    {t("channelCard.noDescription")}
                   </p>
                 )}
               </div>
@@ -285,7 +286,7 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite }: Props) {
                 className="flex items-center justify-center gap-2 w-full rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-2.5 px-4 transition-colors"
               >
                 <MdOpenInNew className="text-lg" />
-                前往頻道
+                {t("channelCard.goToChannel")}
               </a>
             </div>
           </div>

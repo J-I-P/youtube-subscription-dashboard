@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import { FiActivity, FiFilm, FiUsers } from "react-icons/fi";
 import {
   ArcElement,
@@ -63,6 +64,7 @@ function StatCard({
 }
 
 export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
+  const { t, i18n } = useTranslation();
   const [history, setHistory] = useState<HistoryPoint[]>([]);
 
   useEffect(() => {
@@ -91,8 +93,8 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   const topCountriesForPie = sortedCountries.slice(0, TOP_N);
   const otherCount = sortedCountries.slice(TOP_N).reduce((sum, [, n]) => sum + n, 0);
   const pieData = [
-    ...topCountriesForPie.map(([name, value]) => ({ name: name === "Unknown" ? "未知" : name, value })),
-    ...(otherCount > 0 ? [{ name: "其他", value: otherCount }] : []),
+    ...topCountriesForPie.map(([name, value]) => ({ name: name === "Unknown" ? t("stats.unknown") : name, value })),
+    ...(otherCount > 0 ? [{ name: t("stats.others"), value: otherCount }] : []),
   ];
   const PIE_COLORS = [
     "#dc2626", "#ea580c", "#d97706", "#65a30d", "#16a34a",
@@ -121,7 +123,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       tooltip: {
         callbacks: {
           label: (ctx: { parsed: number; label: string }) =>
-            ` ${ctx.label}: ${ctx.parsed.toLocaleString()} 個頻道（${((ctx.parsed / totalCount) * 100).toFixed(1)}%）`,
+            t("stats.tooltipChannels", { name: ctx.label, count: ctx.parsed.toLocaleString(), pct: ((ctx.parsed / totalCount) * 100).toFixed(1) }),
         },
       },
     },
@@ -135,7 +137,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   const chartData = history.map((h) => ({
     date: h.date,
     count: h.count,
-    label: new Date(h.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    label: new Date(h.date).toLocaleDateString(i18n.language === "zh-TW" ? "zh-TW" : "en", { month: "short", day: "numeric" }),
   }));
 
   const firstCount = chartData[0]?.count;
@@ -146,7 +148,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     labels: chartData.map((d) => d.label),
     datasets: [
       {
-        label: "頻道數",
+        label: t("stats.totalChannels"),
         data: chartData.map((d) => d.count),
         borderColor: "#dc2626",
         backgroundColor: "rgba(220,38,38,0.08)",
@@ -168,7 +170,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       tooltip: {
         callbacks: {
           label: (ctx: { parsed: { y: number } }) =>
-            ` ${ctx.parsed.y.toLocaleString()} 個頻道`,
+            t("stats.tooltipCount", { count: ctx.parsed.y.toLocaleString(), pct: ((ctx.parsed.y / totalCount) * 100).toFixed(1) }),
         },
       },
     },
@@ -219,7 +221,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       tooltip: {
         callbacks: {
           label: (ctx: { parsed: { y: number } }) =>
-            ` ${ctx.parsed.y.toLocaleString()} 個頻道（${((ctx.parsed.y / totalCount) * 100).toFixed(1)}%）`,
+            t("stats.tooltipCount", { count: ctx.parsed.y.toLocaleString(), pct: ((ctx.parsed.y / totalCount) * 100).toFixed(1) }),
         },
       },
     },
@@ -232,11 +234,11 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
   // Update frequency buckets
   const now = Date.now();
   const freqBuckets = [
-    { label: "本週內", maxDays: 7 },
-    { label: "本月內", maxDays: 30 },
-    { label: "3 個月內", maxDays: 90 },
-    { label: "6 個月內", maxDays: 180 },
-    { label: "超過 6 個月", maxDays: Infinity },
+    { label: t("stats.bucket_week"), maxDays: 7 },
+    { label: t("stats.bucket_month"), maxDays: 30 },
+    { label: t("stats.bucket_3months"), maxDays: 90 },
+    { label: t("stats.bucket_6months"), maxDays: 180 },
+    { label: t("stats.bucket_over6months"), maxDays: Infinity },
   ];
   const freqCounts = freqBuckets.map(({ maxDays }, i) => {
     const prevMax = freqBuckets[i - 1]?.maxDays ?? 0;
@@ -264,24 +266,24 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     <div className="flex flex-col gap-6">
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="訂閱頻道總數" value={totalCount.toLocaleString()} icon={<FiUsers />} />
+        <StatCard label={t("stats.totalChannels")} value={totalCount.toLocaleString()} icon={<FiUsers />} />
         <StatCard
-          label="本週有更新"
+          label={t("stats.thisWeekUpdated")}
           value={thisWeekCount.toLocaleString()}
-          sub={`佔 ${((thisWeekCount / totalCount) * 100).toFixed(1)}%`}
+          sub={t("stats.percentage", { value: ((thisWeekCount / totalCount) * 100).toFixed(1) })}
           icon={<FiActivity />}
         />
         <StatCard
-          label="有影片的頻道"
+          label={t("stats.channelsWithVideo")}
           value={channelsWithVideo.toLocaleString()}
-          sub={`佔 ${((channelsWithVideo / totalCount) * 100).toFixed(1)}%`}
+          sub={t("stats.percentage", { value: ((channelsWithVideo / totalCount) * 100).toFixed(1) })}
           icon={<FiFilm />}
         />
         <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5 flex flex-col gap-1">
-          <p className="text-xs text-amber-600 dark:text-amber-400">⚠ 停更超過 6 個月</p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">{t("stats.inactive6m")}</p>
           <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{inactiveCount.toLocaleString()}</p>
           <p className="text-xs text-amber-500 dark:text-amber-500">
-            佔 {((inactiveCount / totalCount) * 100).toFixed(1)}%，建議考慮取消訂閱
+            {t("stats.inactiveSub", { value: ((inactiveCount / totalCount) * 100).toFixed(1) })}
           </p>
         </div>
       </div>
@@ -291,22 +293,22 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              訂閱頻道數量趨勢
+              {t("stats.trend")}
             </h2>
             {growth !== null && (
               <p className={`text-xs mt-0.5 ${growth >= 0 ? "text-green-500" : "text-red-500"}`}>
-                {growth >= 0 ? "+" : ""}{growth} 頻道（記錄期間）
+                {t("stats.growth", { sign: growth >= 0 ? "+" : "", count: Math.abs(growth) })}
               </p>
             )}
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            {chartData.length} 筆資料
+            {t("stats.dataPoints", { count: chartData.length })}
           </p>
         </div>
         {chartData.length < 2 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-600 text-sm gap-2">
-            <p>資料點不足，無法顯示趨勢圖。</p>
-            <p className="text-xs">每週 GitHub Actions 執行後會自動累積資料。</p>
+            <p>{t("stats.noData")}</p>
+            <p className="text-xs">{t("stats.noDataSub")}</p>
           </div>
         ) : (
           <div style={{ height: 280 }}>
@@ -319,12 +321,12 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
         <div className="mb-4">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            頻道地區分布
+            {t("stats.countryDist")}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            共 {Object.keys(countryCounts).length} 個地區
+            {t("stats.regionCount", { count: Object.keys(countryCounts).length })}
             {topCountry && (
-              <>，最多為 <span className="font-medium text-gray-600 dark:text-gray-300">{topCountry[0] === "Unknown" ? "未知" : topCountry[0]}</span>（{topCountry[1]} 個頻道）</>
+              <>，{t("stats.topCountry", { name: topCountry[0] === "Unknown" ? t("stats.unknown") : topCountry[0], count: topCountry[1] })}</>
             )}
           </p>
         </div>
@@ -365,13 +367,13 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       {/* Subscriber scale & update frequency */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">訂閱者規模分布</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t("stats.subscriberScale")}</h2>
           <div style={{ height: 220 }}>
             <Bar data={subBarData} options={barOptions} />
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">更新頻率分析</h2>
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t("stats.updateFrequency")}</h2>
           <div style={{ height: 220 }}>
             <Bar data={freqBarData} options={barOptions} />
           </div>
@@ -379,8 +381,8 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
       </div>
 
       <p className="text-xs text-gray-400 dark:text-gray-500">
-        Last updated:{" "}
-        {new Date(lastUpdated).toLocaleString(undefined, {
+        {t("lastUpdated")}{" "}
+        {new Date(lastUpdated).toLocaleString(i18n.language === "zh-TW" ? "zh-TW" : "en", {
           dateStyle: "medium",
           timeStyle: "short",
         })}

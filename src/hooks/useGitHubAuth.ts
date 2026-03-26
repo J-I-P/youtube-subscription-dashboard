@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import i18n from "../i18n";
 
 const TOKEN_KEY = "gh-favorites-token";
 
@@ -55,7 +56,7 @@ export function useGitHubAuth() {
       setStatus("authenticated");
     } catch {
       setStatus("error");
-      setError("Token 無效，請確認有 gist 權限。");
+      setError(i18n.t("auth.invalidToken"));
     }
   }, []);
 

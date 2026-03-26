@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export type SortKey = "title" | "subscriberCount" | "videoCount" | "lastVideo";
 export type SortOrder = "asc" | "desc";
 
@@ -8,14 +10,16 @@ interface Props {
   onSortOrderChange: (order: SortOrder) => void;
 }
 
-const OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "title", label: "Name" },
-  { value: "subscriberCount", label: "Subscribers" },
-  { value: "videoCount", label: "Videos" },
-  { value: "lastVideo", label: "Last Video" },
-];
-
 export function SortBar({ sort, sortOrder, onSortChange, onSortOrderChange }: Props) {
+  const { t } = useTranslation();
+
+  const OPTIONS: { value: SortKey; labelKey: string }[] = [
+    { value: "title", labelKey: "sort.name" },
+    { value: "subscriberCount", labelKey: "sort.subscribers" },
+    { value: "videoCount", labelKey: "sort.videos" },
+    { value: "lastVideo", labelKey: "sort.lastVideo" },
+  ];
+
   function handleSortClick(key: SortKey) {
     if (key === sort) {
       onSortOrderChange(sortOrder === "asc" ? "desc" : "asc");
@@ -26,7 +30,7 @@ export function SortBar({ sort, sortOrder, onSortChange, onSortOrderChange }: Pr
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-gray-500 dark:text-gray-400">Sort by:</span>
+      <span className="text-gray-500 dark:text-gray-400">{t("sort.label")}</span>
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
@@ -37,9 +41,9 @@ export function SortBar({ sort, sortOrder, onSortChange, onSortOrderChange }: Pr
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-400"
           }`}
         >
-          {opt.label}
+          {t(opt.labelKey)}
           {sort === opt.value && (
-            <span aria-label={sortOrder === "asc" ? "ascending" : "descending"}>
+            <span aria-label={sortOrder === "asc" ? t("sort.ascending") : t("sort.descending")}>
               {sortOrder === "asc" ? "↑" : "↓"}
             </span>
           )}

@@ -1,0 +1,127 @@
+{
+  "header": {
+    "title": "YouTube Subscriptions",
+    "channels": "{{count}} channels"
+  },
+  "tabs": {
+    "stats": "Statistics",
+    "all": "All Channels",
+    "thisWeek": "This Week",
+    "favorites": "Favorites",
+    "inactive": "Inactive"
+  },
+  "status": {
+    "loading": "Loading subscriptions…",
+    "error": "Failed to load data: {{error}}"
+  },
+  "empty": {
+    "thisWeek": "No channels updated this week.",
+    "favorites": "No favorites yet. Click ♡ on a channel card to save it.",
+    "inactive": "No channels inactive for over 6 months. Subscriptions look healthy!",
+    "search": "No channels match \"{{query}}\""
+  },
+  "lastUpdated": "Last updated:",
+  "stats": {
+    "totalChannels": "Total Channels",
+    "thisWeekUpdated": "Updated This Week",
+    "channelsWithVideo": "Channels with Videos",
+    "percentage": "{{value}}% of total",
+    "inactive6m": "⚠ Inactive > 6 months",
+    "inactiveSub": "{{value}}% — consider unsubscribing",
+    "trend": "Subscription Trend",
+    "growth": "{{sign}}{{count}} channels (tracked period)",
+    "dataPoints": "{{count}} data points",
+    "noData": "Not enough data to show trend.",
+    "noDataSub": "Data accumulates automatically after each weekly GitHub Actions run.",
+    "countryDist": "Channel Distribution by Country",
+    "regionCount": "{{count}} regions",
+    "topCountry": " — top region: {{name}} ({{count}} channels)",
+    "unknown": "Unknown",
+    "others": "Others",
+    "tooltipChannels": " {{name}}: {{count}} channels ({{pct}}%)",
+    "tooltipCount": " {{count}} channels ({{pct}}%)",
+    "subscriberScale": "Subscriber Scale",
+    "updateFrequency": "Update Frequency",
+    "bucket_week": "This week",
+    "bucket_month": "This month",
+    "bucket_3months": "< 3 months",
+    "bucket_6months": "< 6 months",
+    "bucket_over6months": "> 6 months"
+  },
+  "channelCard": {
+    "removeFavorite": "Remove from favorites",
+    "addFavorite": "Add to favorites",
+    "inactive": "No new videos in 6+ months — consider unsubscribing",
+    "inactiveShort": "No new videos in 6+ months",
+    "latestVideo": "Latest Video",
+    "description": "Channel Description",
+    "noDescription": "This channel has no description.",
+    "goToChannel": "Go to Channel",
+    "close": "Close",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "monthsAgo": "{{count}}mo ago",
+    "yearsAgo": "{{count}}y ago"
+  },
+  "search": {
+    "placeholder": "Search channels..."
+  },
+  "sort": {
+    "label": "Sort by:",
+    "name": "Name",
+    "subscribers": "Subscribers",
+    "videos": "Videos",
+    "lastVideo": "Last Video",
+    "ascending": "ascending",
+    "descending": "descending"
+  },
+  "country": {
+    "label": "Country:",
+    "clear": "Clear"
+  },
+  "auth": {
+    "syncing": "Syncing…",
+    "logout": "Logout",
+    "validating": "Validating…",
+    "loginTitle": "Sign in to sync favorites across devices",
+    "loginLg": "Sign in to sync favorites",
+    "loginSm": "Sync favorites",
+    "modalTitle": "Sync Favorites with GitHub",
+    "step1": "Open the",
+    "step1Link": "GitHub Token creation page",
+    "step2pre": "Check only the",
+    "step2post": "scope, then click \"Generate token\"",
+    "step3": "Copy the generated token and paste it below",
+    "submit": "Confirm & Sign In",
+    "privacy": "Token is stored only in your browser's localStorage and is never sent to any third party.",
+    "invalidToken": "Invalid token. Please make sure you have the gist scope."
+  },
+  "scrollToTop": "Scroll to top",
+  "landing": {
+    "navTitle": "YouTube Subscriptions",
+    "enterDashboard": "Enter Dashboard →",
+    "badge": "Personal YouTube Subscription Manager",
+    "heroTitle1": "Take control of your",
+    "heroTitle2": "subscriptions",
+    "heroDesc": "Manage all your subscribed channels in one place. View stats, filter this week's updates, and save your favorites. Data syncs automatically every week so you never miss anything.",
+    "cta": "Get Started",
+    "featuresTitle": "Features",
+    "featuresSub": "A complete toolkit built for subscription management",
+    "techTitle": "Tech Stack",
+    "techSub": "Modern frontend technologies — fast, lightweight, and maintainable",
+    "ctaTitle": "Ready to get started?",
+    "ctaSub": "Start organizing your YouTube subscriptions",
+    "ctaButton": "Enter Dashboard",
+    "footerTitle": "YouTube Subscriptions",
+    "footerSub": "Built with React + TypeScript + Tailwind CSS",
+    "features": {
+      "stats": { "title": "Statistics", "desc": "Visualize subscription growth trends with charts and get an overview at a glance." },
+      "search": { "title": "Instant Search", "desc": "Filter channels in real time by typing keywords to quickly find what you're looking for." },
+      "filter": { "title": "Multi-filter", "desc": "Combine country and sort filters freely to create your own personalized browsing experience." },
+      "favorites": { "title": "Favorites", "desc": "Save favorite channels and sync them across devices via GitHub Gist." },
+      "weekly": { "title": "This Week's Updates", "desc": "Automatically highlights channels that posted within the last 7 days." },
+      "sync": { "title": "Auto Sync", "desc": "GitHub Actions fetches the latest subscription data weekly — no manual updates needed." }
+    }
+  }
+}

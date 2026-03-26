@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MdClose, MdSync } from "react-icons/md";
 import type { AuthStatus, GitHubUser } from "../hooks/useGitHubAuth";
 
@@ -20,6 +21,7 @@ function GitHubIcon() {
 }
 
 export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToken, onLogout }: Props) {
+  const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const [pat, setPat] = useState("");
 
@@ -36,7 +38,7 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
     return (
       <div className="flex items-center gap-2 ml-auto">
         {syncing && (
-          <MdSync className="text-gray-400 dark:text-gray-500 animate-spin text-base flex-shrink-0" title="同步中…" />
+          <MdSync className="text-gray-400 dark:text-gray-500 animate-spin text-base flex-shrink-0" title={t("auth.syncing")} />
         )}
         <img src={user.avatar_url} alt={user.login} className="w-7 h-7 rounded-full flex-shrink-0" />
         <span className="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">@{user.login}</span>
@@ -44,7 +46,7 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
           onClick={onLogout}
           className="text-xs text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
         >
-          登出
+          {t("auth.logout")}
         </button>
       </div>
     );
@@ -54,7 +56,7 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
     return (
       <div className="flex items-center gap-2 ml-auto text-sm text-gray-500 dark:text-gray-400">
         <MdSync className="animate-spin" />
-        <span>驗證中…</span>
+        <span>{t("auth.validating")}</span>
       </div>
     );
   }
@@ -64,11 +66,11 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
       <button
         onClick={() => setModalOpen(true)}
         className="ml-auto flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 rounded-lg px-3 py-1.5 transition-colors"
-        title="登入後可跨裝置同步最愛"
+        title={t("auth.loginTitle")}
       >
         <GitHubIcon />
-        <span className="hidden sm:inline">登入以同步最愛</span>
-        <span className="sm:hidden">同步最愛</span>
+        <span className="hidden sm:inline">{t("auth.loginLg")}</span>
+        <span className="sm:hidden">{t("auth.loginSm")}</span>
       </button>
 
       {modalOpen && (
@@ -83,7 +85,7 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100">
                 <GitHubIcon />
-                使用 GitHub 同步最愛
+                {t("auth.modalTitle")}
               </div>
               <button
                 onClick={() => setModalOpen(false)}
@@ -95,22 +97,22 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
 
             <ol className="text-sm text-gray-600 dark:text-gray-300 space-y-1.5 list-decimal list-inside">
               <li>
-                點擊開啟{" "}
+                {t("auth.step1")}{" "}
                 <a
                   href="https://github.com/settings/tokens/new?scopes=gist&description=YouTube+Dashboard+Favorites"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline"
                 >
-                  GitHub Token 建立頁面
+                  {t("auth.step1Link")}
                 </a>
               </li>
               <li>
-                確認只勾選{" "}
+                {t("auth.step2pre")}{" "}
                 <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded text-xs">gist</code>{" "}
-                權限，點擊「Generate token」
+                {t("auth.step2post")}
               </li>
-              <li>複製產生的 token 貼到下方</li>
+              <li>{t("auth.step3")}</li>
             </ol>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -129,12 +131,12 @@ export function GitHubAuthButton({ status, user, error, syncing, onLoginWithToke
                 className="w-full rounded-lg bg-gray-900 dark:bg-gray-100 hover:bg-gray-700 dark:hover:bg-white text-white dark:text-gray-900 font-semibold py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <GitHubIcon />
-                確認並登入
+                {t("auth.submit")}
               </button>
             </form>
 
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Token 只儲存在你的瀏覽器 localStorage，不會傳送給任何第三方。
+              {t("auth.privacy")}
             </p>
           </div>
         </div>

@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MdSubscriptions } from "react-icons/md";
+import i18n from "./i18n";
 import { isChannelInactive } from "./channelHealth";
 import { ChannelCard } from "./components/ChannelCard";
 import { CountryFilter } from "./components/CountryFilter";
 import { GitHubAuthButton } from "./components/GitHubAuthButton";
+import { LangToggle } from "./components/LangToggle";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
 import { useGistFavorites } from "./hooks/useGistFavorites";
@@ -22,7 +25,9 @@ function isThisWeek(dateStr: string): boolean {
   return now - new Date(dateStr).getTime() <= sevenDays;
 }
 
+
 export default function App() {
+  const { t } = useTranslation();
   const [showLanding, setShowLanding] = useState(true);
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
@@ -112,41 +117,44 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
           <MdSubscriptions className="text-2xl text-red-600" />
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            YouTube Subscriptions
+            {t("header.title")}
           </h1>
           {data && (
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {data.totalCount} channels
+              {t("header.channels", { count: data.totalCount })}
             </span>
           )}
-          <GitHubAuthButton
-            status={authStatus}
-            user={user}
-            error={authError}
-            syncing={syncing}
-            onLoginWithToken={loginWithToken}
-            onLogout={logout}
-          />
+          <div className="ml-auto flex items-center gap-2">
+            <GitHubAuthButton
+              status={authStatus}
+              user={user}
+              error={authError}
+              syncing={syncing}
+              onLoginWithToken={loginWithToken}
+              onLogout={logout}
+            />
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6">
         {status === "loading" && (
           <p className="text-center text-gray-500 dark:text-gray-400 py-20">
-            Loading subscriptions…
+            {t("status.loading")}
           </p>
         )}
 
         {status === "error" && (
           <p className="text-center text-red-500 py-20">
-            Failed to load data: {error}
+            {t("status.error", { error })}
           </p>
         )}
 
         {status === "success" && data && (
           <>
             {/* Tabs */}
-            <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-1 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex gap-1 flex-1">
               <button
                 onClick={() => setTab("stats")}
                 className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
@@ -155,7 +163,7 @@ export default function App() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 }`}
               >
-                統計趨勢
+                {t("tabs.stats")}
               </button>
               <button
                 onClick={() => setTab("all")}
@@ -165,7 +173,7 @@ export default function App() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 }`}
               >
-                全部頻道
+                {t("tabs.all")}
                 <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
                   {data.totalCount}
                 </span>
@@ -178,7 +186,7 @@ export default function App() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 }`}
               >
-                本週更新
+                {t("tabs.thisWeek")}
                 {thisWeekCount > 0 && (
                   <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 px-1.5 py-0.5 min-w-[1.25rem]">
                     {thisWeekCount}
@@ -193,7 +201,7 @@ export default function App() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 }`}
               >
-                我的最愛
+                {t("tabs.favorites")}
                 {favorites.size > 0 && (
                   <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 px-1.5 py-0.5 min-w-[1.25rem]">
                     {favorites.size}
@@ -208,13 +216,15 @@ export default function App() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                 }`}
               >
-                停更頻道
+                {t("tabs.inactive")}
                 {inactiveCount > 0 && (
                   <span className="ml-1.5 inline-flex items-center justify-center text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 min-w-[1.25rem]">
                     {inactiveCount}
                   </span>
                 )}
               </button>
+              </div>
+              <div className="pb-1"><LangToggle /></div>
             </div>
 
             {tab === "stats" ? (
@@ -241,8 +251,8 @@ export default function App() {
 
             {data.lastUpdated && (
               <p className="text-xs text-gray-400 dark:text-gray-500">
-                Last updated:{" "}
-                {new Date(data.lastUpdated).toLocaleString(undefined, {
+                {t("lastUpdated")}{" "}
+                {new Date(data.lastUpdated).toLocaleString(i18n.language === "zh-TW" ? "zh-TW" : "en", {
                   dateStyle: "medium",
                   timeStyle: "short",
                 })}
@@ -252,12 +262,12 @@ export default function App() {
             {channels.length === 0 ? (
               <p className="text-center text-gray-500 dark:text-gray-400 py-20">
                 {tab === "this-week" && !query
-                  ? "本週沒有頻道更新影片。"
+                  ? t("empty.thisWeek")
                   : tab === "favorites" && !query
-                  ? "還沒有加入最愛的頻道，點擊頻道卡片上的 ♡ 來收藏。"
+                  ? t("empty.favorites")
                   : tab === "inactive" && !query
-                  ? "目前沒有停更超過 6 個月的頻道，訂閱健康！"
-                  : `No channels match "${query}"`}
+                  ? t("empty.inactive")
+                  : t("empty.search", { query })}
               </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
