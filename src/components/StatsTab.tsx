@@ -250,11 +250,11 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
             )}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="flex-1" style={{ height: 320 }}>
+        <div className="flex flex-col sm:flex-row gap-6 overflow-hidden">
+          <div className="flex-1 min-w-0" style={{ height: 320 }}>
             <Doughnut data={doughnutData} options={doughnutOptions} />
           </div>
-          <ol className="flex-1 space-y-2 self-center">
+          <ol className="flex-1 min-w-0 space-y-2 self-center px-4 py-2">
             {pieData.map((item, i) => {
               const pct = (item.value / totalCount) * 100;
               return (
