@@ -108,17 +108,7 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
     animation: false as const,
     cutout: "55%",
     plugins: {
-      legend: {
-        position: "right" as const,
-        labels: {
-          boxWidth: 12,
-          boxHeight: 12,
-          borderRadius: 6,
-          useBorderRadius: true,
-          padding: 12,
-          font: { size: 12 },
-        },
-      },
+      legend: { display: false },
       tooltip: {
         callbacks: {
           label: (ctx: { parsed: number; label: string }) =>
@@ -251,8 +241,37 @@ export function StatsTab({ channels, totalCount, lastUpdated }: StatsTabProps) {
             )}
           </p>
         </div>
-        <div style={{ height: 320 }}>
-          <Doughnut data={doughnutData} options={doughnutOptions} />
+        <div className="flex flex-col sm:flex-row gap-6">
+          <div className="flex-1" style={{ height: 320 }}>
+            <Doughnut data={doughnutData} options={doughnutOptions} />
+          </div>
+          <ol className="flex-1 space-y-2 self-center">
+            {pieData.map((item, i) => {
+              const pct = (item.value / totalCount) * 100;
+              return (
+                <li key={item.name} className="flex items-center gap-2 text-sm">
+                  <span className="w-5 text-right text-xs text-gray-400 dark:text-gray-500 shrink-0">{i + 1}</span>
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}
+                  />
+                  <span className="flex-1 truncate text-gray-700 dark:text-gray-300">{item.name}</span>
+                  <div className="w-24 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 shrink-0">
+                    <div
+                      className="h-1.5 rounded-full"
+                      style={{
+                        width: `${(item.value / pieData[0].value * 100).toFixed(1)}%`,
+                        backgroundColor: PIE_COLORS[i % PIE_COLORS.length],
+                      }}
+                    />
+                  </div>
+                  <span className="w-10 text-right text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                    {pct.toFixed(1)}%
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
 
