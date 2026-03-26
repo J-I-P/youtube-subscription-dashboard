@@ -87,18 +87,33 @@ export function ChannelCard({ channel }: Props) {
           href={channel.lastVideo.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-auto flex items-start gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+          className="mt-auto rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
           title="Latest video"
         >
-          <MdPlayCircle className="mt-0.5 text-base text-red-500 shrink-0" />
-          <span className="min-w-0">
-            <span className="block text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+          <div className="relative w-full aspect-video bg-gray-200 dark:bg-gray-700">
+            <img
+              src={
+                channel.lastVideo.thumbnailUrl ||
+                `https://img.youtube.com/vi/${channel.lastVideo.id}/mqdefault.jpg`
+              }
+              alt={channel.lastVideo.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+              <MdPlayCircle className="text-4xl text-white drop-shadow" />
+            </div>
+          </div>
+          <div className="px-3 py-2 text-xs">
+            <span className="block text-gray-700 dark:text-gray-200 line-clamp-2 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors font-medium">
               {channel.lastVideo.title}
             </span>
             <span className="text-gray-400 dark:text-gray-500 mt-0.5 block">
               {timeAgo(channel.lastVideo.publishedAt)}
             </span>
-          </span>
+          </div>
         </a>
       ) : (
         <div className="mt-auto" />

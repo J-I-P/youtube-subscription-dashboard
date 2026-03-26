@@ -3,6 +3,7 @@ export interface LastVideo {
   title: string;
   publishedAt: string;
   url: string;
+  thumbnailUrl: string | null;
 }
 
 export interface Channel {

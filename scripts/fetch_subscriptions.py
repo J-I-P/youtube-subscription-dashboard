@@ -98,7 +98,7 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
 
 
 def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | None:
-    """Return the latest video's id, title, publishedAt, and url, or None if unavailable."""
+    """Return the latest video's id, title, publishedAt, thumbnailUrl, and url, or None if unavailable."""
     try:
         data = youtube_get(
             access_token,
@@ -121,11 +121,23 @@ def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | No
     if not video_id:
         return None
 
+    thumbnails = snippet.get("thumbnails", {})
+    thumbnail_url = (
+        thumbnails.get("high", {}).get("url")
+        or thumbnails.get("medium", {}).get("url")
+        or thumbnails.get("default", {}).get("url")
+        or None
+    )
+    # Skip videos without thumbnails (e.g. private or deleted videos)
+    if not thumbnail_url:
+        return None
+
     return {
         "id": video_id,
         "title": snippet.get("title", ""),
         "publishedAt": snippet.get("publishedAt", ""),
         "url": f"https://www.youtube.com/watch?v={video_id}",
+        "thumbnailUrl": thumbnail_url,
     }
 
 
