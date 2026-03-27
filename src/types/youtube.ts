@@ -1,5 +1,15 @@
+export interface LastVideo {
+  id: string;
+  title: string;
+  publishedAt: string;
+  url: string;
+  thumbnailUrl: string | null;
+}
+
 export interface Channel {
   id: string;
+  /** YouTube subscription resource ID, used for unsubscribing via the API */
+  subscriptionId?: string;
   title: string;
   description: string;
   thumbnailUrl: string;
@@ -9,6 +19,7 @@ export interface Channel {
   publishedAt: string;
   customUrl: string | null;
   country: string | null;
+  lastVideo: LastVideo | null;
 }
 
 export interface SubscriptionsData {

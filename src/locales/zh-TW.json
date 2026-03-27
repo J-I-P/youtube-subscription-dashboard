@@ -1,0 +1,135 @@
+{
+  "header": {
+    "title": "YouTube Subscriptions",
+    "channels": "{{count}} 個頻道"
+  },
+  "tabs": {
+    "stats": "統計趨勢",
+    "all": "全部頻道",
+    "thisWeek": "本週更新",
+    "favorites": "我的最愛",
+    "inactive": "停更頻道"
+  },
+  "status": {
+    "loading": "載入訂閱資料中…",
+    "error": "載入失敗：{{error}}"
+  },
+  "empty": {
+    "thisWeek": "本週沒有頻道更新影片。",
+    "favorites": "還沒有加入最愛的頻道，點擊頻道卡片上的 ♡ 來收藏。",
+    "inactive": "目前沒有停更超過 6 個月的頻道，訂閱健康！",
+    "search": "找不到符合「{{query}}」的頻道"
+  },
+  "lastUpdated": "最後更新：",
+  "stats": {
+    "totalChannels": "訂閱頻道總數",
+    "thisWeekUpdated": "本週有更新",
+    "channelsWithVideo": "有影片的頻道",
+    "percentage": "佔 {{value}}%",
+    "inactive6m": "⚠ 停更超過 6 個月",
+    "inactiveSub": "佔 {{value}}%，建議考慮取消訂閱",
+    "trend": "訂閱頻道數量趨勢",
+    "growth": "{{sign}}{{count}} 頻道（記錄期間）",
+    "dataPoints": "{{count}} 筆資料",
+    "noData": "資料點不足，無法顯示趨勢圖。",
+    "noDataSub": "每週 GitHub Actions 執行後會自動累積資料。",
+    "countryDist": "頻道地區分布",
+    "regionCount": "共 {{count}} 個地區",
+    "topCountry": "，最多為 {{name}}（{{count}} 個頻道）",
+    "unknown": "未知",
+    "others": "其他",
+    "tooltipChannels": " {{name}}: {{count}} 個頻道（{{pct}}%）",
+    "tooltipCount": " {{count}} 個頻道（{{pct}}%）",
+    "subscriberScale": "訂閱者規模分布",
+    "updateFrequency": "更新頻率分析",
+    "bucket_week": "本週內",
+    "bucket_month": "本月內",
+    "bucket_3months": "3 個月內",
+    "bucket_6months": "6 個月內",
+    "bucket_over6months": "超過 6 個月"
+  },
+  "channelCard": {
+    "removeFavorite": "移除最愛",
+    "addFavorite": "加入最愛",
+    "inactive": "超過 6 個月無新影片，考慮取消訂閱",
+    "inactiveShort": "超過 6 個月無新影片",
+    "latestVideo": "最新影片",
+    "description": "頻道描述",
+    "noDescription": "此頻道沒有提供描述。",
+    "goToChannel": "前往頻道",
+    "close": "關閉",
+    "minutesAgo": "{{count}} 分鐘前",
+    "hoursAgo": "{{count}} 小時前",
+    "daysAgo": "{{count}} 天前",
+    "monthsAgo": "{{count}} 個月前",
+    "yearsAgo": "{{count}} 年前",
+    "unsubscribe": "取消訂閱",
+    "unsubscribeConfirm": "將「{{title}}」加入取消訂閱佇列？",
+    "unsubscribeConfirmYes": "加入佇列",
+    "unsubscribeConfirmNo": "取消",
+    "unsubscribeQueued": "已在取消訂閱佇列中，下次執行 workflow 時將處理",
+    "unsubscribeTriggered": "已加入取消訂閱佇列，請至 GitHub Actions 執行取消訂閱 workflow。",
+    "unsubscribeFailed": "加入佇列失敗，請確認 GitHub Token 有 gist 權限。",
+    "unsubscribeNoToken": "請先登入 GitHub（需要 gist 權限）才能使用取消訂閱佇列。"
+  },
+  "search": {
+    "placeholder": "搜尋頻道…"
+  },
+  "sort": {
+    "label": "排序：",
+    "name": "名稱",
+    "subscribers": "訂閱數",
+    "videos": "影片數",
+    "lastVideo": "最新影片",
+    "ascending": "升冪",
+    "descending": "降冪"
+  },
+  "country": {
+    "label": "地區：",
+    "clear": "清除"
+  },
+  "auth": {
+    "syncing": "同步中…",
+    "logout": "登出",
+    "validating": "驗證中…",
+    "loginTitle": "登入後可跨裝置同步最愛",
+    "loginLg": "登入以同步最愛",
+    "loginSm": "同步最愛",
+    "modalTitle": "使用 GitHub 同步最愛",
+    "step1": "點擊開啟",
+    "step1Link": "GitHub Token 建立頁面",
+    "step2pre": "確認只勾選",
+    "step2post": "權限，點擊「Generate token」",
+    "step3": "複製產生的 token 貼到下方",
+    "submit": "確認並登入",
+    "privacy": "Token 只儲存在你的瀏覽器 localStorage，不會傳送給任何第三方。",
+    "invalidToken": "Token 無效，請確認有 gist 權限。"
+  },
+  "scrollToTop": "回到頂部",
+  "landing": {
+    "navTitle": "YouTube 訂閱總覽",
+    "enterDashboard": "進入 Dashboard →",
+    "badge": "個人 YouTube 訂閱管理工具",
+    "heroTitle1": "掌握你的",
+    "heroTitle2": "訂閱",
+    "heroDesc": "一站式管理所有訂閱頻道，查看統計趨勢、篩選本週更新、收藏喜愛頻道。資料每週自動同步，讓你不再錯過任何精彩內容。",
+    "cta": "立即體驗",
+    "featuresTitle": "功能特色",
+    "featuresSub": "專為訂閱管理打造的全方位工具",
+    "techTitle": "技術堆疊",
+    "techSub": "採用現代前端技術，快速、輕量、易維護",
+    "ctaTitle": "準備好了嗎？",
+    "ctaSub": "開始整理你的 YouTube 訂閱清單",
+    "ctaButton": "進入 Dashboard",
+    "footerTitle": "YouTube 訂閱總覽",
+    "footerSub": "使用 React + TypeScript + Tailwind CSS 打造",
+    "features": {
+      "stats": { "title": "統計趨勢", "desc": "以視覺化圖表呈現頻道訂閱成長趨勢，一眼掌握整體數據概況。" },
+      "search": { "title": "即時搜尋", "desc": "輸入關鍵字即時篩選頻道，快速找到你想要的訂閱內容。" },
+      "filter": { "title": "多維度篩選", "desc": "依國家、排序方式自由組合篩選，打造專屬的頻道瀏覽體驗。" },
+      "favorites": { "title": "我的最愛", "desc": "收藏喜愛的頻道，搭配 GitHub Gist 跨裝置同步，隨時隨地查看。" },
+      "weekly": { "title": "本週更新", "desc": "自動標記 7 天內有新影片的頻道，不錯過任何最新內容。" },
+      "sync": { "title": "自動同步資料", "desc": "透過 GitHub Actions 每週自動拉取最新訂閱資料，免手動更新。" }
+    }
+  }
+}

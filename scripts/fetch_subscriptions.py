@@ -26,6 +26,7 @@ import requests
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 OUTPUT_FILE = Path("public/data/subscriptions.json")
+HISTORY_FILE = Path("public/data/history.json")
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -76,8 +77,9 @@ def youtube_get(access_token: str, endpoint: str, params: dict) -> dict:
     raise RuntimeError("unreachable")
 
 
-def fetch_all_subscriptions(access_token: str) -> list[str]:
-    channel_ids: list[str] = []
+def fetch_all_subscriptions(access_token: str) -> dict[str, str]:
+    """Return a mapping of channelId -> subscriptionId."""
+    subscriptions: dict[str, str] = {}
     page_token = None
 
     while True:
@@ -88,16 +90,62 @@ def fetch_all_subscriptions(access_token: str) -> list[str]:
         data = youtube_get(access_token, "subscriptions", params)
 
         for item in data.get("items", []):
-            channel_ids.append(item["snippet"]["resourceId"]["channelId"])
+            channel_id = item["snippet"]["resourceId"]["channelId"]
+            subscription_id = item["id"]
+            subscriptions[channel_id] = subscription_id
 
         page_token = data.get("nextPageToken")
         if not page_token:
             break
 
-    return channel_ids
+    return subscriptions
 
 
-def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dict]:
+def fetch_latest_video(access_token: str, uploads_playlist_id: str) -> dict | None:
+    """Return the latest video's id, title, publishedAt, thumbnailUrl, and url, or None if unavailable."""
+    try:
+        data = youtube_get(
+            access_token,
+            "playlistItems",
+            {
+                "part": "snippet",
+                "playlistId": uploads_playlist_id,
+                "maxResults": "1",
+            },
+        )
+    except Exception:
+        return None
+
+    items = data.get("items", [])
+    if not items:
+        return None
+
+    snippet = items[0].get("snippet", {})
+    video_id = snippet.get("resourceId", {}).get("videoId")
+    if not video_id:
+        return None
+
+    thumbnails = snippet.get("thumbnails", {})
+    thumbnail_url = (
+        thumbnails.get("high", {}).get("url")
+        or thumbnails.get("medium", {}).get("url")
+        or thumbnails.get("default", {}).get("url")
+        or None
+    )
+    # Skip videos without thumbnails (e.g. private or deleted videos)
+    if not thumbnail_url:
+        return None
+
+    return {
+        "id": video_id,
+        "title": snippet.get("title", ""),
+        "publishedAt": snippet.get("publishedAt", ""),
+        "url": f"https://www.youtube.com/watch?v={video_id}",
+        "thumbnailUrl": thumbnail_url,
+    }
+
+
+def fetch_channel_details(access_token: str, channel_ids: list[str], subscription_map: dict[str, str] | None = None) -> list[dict]:
     channels = []
     returned_ids: set[str] = set()
 
@@ -107,7 +155,7 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
 
         while True:
             params: dict = {
-                "part": "snippet,statistics",
+                "part": "snippet,statistics,contentDetails",
                 "id": ",".join(batch),
                 "maxResults": "50",
             }
@@ -127,10 +175,16 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
                     or thumbnails.get("default", {}).get("url")
                     or ""
                 )
+                uploads_playlist_id = (
+                    item.get("contentDetails", {})
+                    .get("relatedPlaylists", {})
+                    .get("uploads")
+                )
 
                 channels.append(
                     {
                         "id": item["id"],
+                        "subscriptionId": (subscription_map or {}).get(item["id"]),
                         "title": snippet.get("title", ""),
                         "description": snippet.get("description", ""),
                         "thumbnailUrl": thumbnail_url,
@@ -146,6 +200,7 @@ def fetch_channel_details(access_token: str, channel_ids: list[str]) -> list[dic
                         "publishedAt": snippet.get("publishedAt", ""),
                         "customUrl": snippet.get("customUrl") or None,
                         "country": snippet.get("country") or None,
+                        "_uploadsPlaylistId": uploads_playlist_id,
                     }
                 )
 
@@ -172,12 +227,24 @@ def main():
     access_token = get_access_token()
 
     print("Fetching subscriptions...")
-    channel_ids = fetch_all_subscriptions(access_token)
+    subscription_map = fetch_all_subscriptions(access_token)
+    channel_ids = list(subscription_map.keys())
     subscribed_count = len(channel_ids)
     print(f"Found {subscribed_count} subscription IDs")
 
     print("Fetching channel details...")
-    channels = fetch_channel_details(access_token, channel_ids)
+    channels = fetch_channel_details(access_token, channel_ids, subscription_map)
+
+    print("Fetching latest video for each channel...")
+    for idx, channel in enumerate(channels, 1):
+        playlist_id = channel.pop("_uploadsPlaylistId", None)
+        if playlist_id:
+            channel["lastVideo"] = fetch_latest_video(access_token, playlist_id)
+        else:
+            channel["lastVideo"] = None
+        if idx % 50 == 0:
+            print(f"  {idx}/{len(channels)} done...")
+
     channels.sort(key=lambda c: c["title"].lower())
 
     if subscribed_count != len(channels):
@@ -197,6 +264,25 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print(f"Written {len(channels)} channels to {OUTPUT_FILE}")
+
+    # Append data point to history.json
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history: list[dict] = []
+    if HISTORY_FILE.exists():
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+
+    # Update today's entry if it already exists, otherwise append
+    existing = next((h for h in history if h["date"] == today), None)
+    if existing:
+        existing["count"] = subscribed_count
+    else:
+        history.append({"date": today, "count": subscribed_count})
+
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+    print(f"Updated history ({len(history)} data points) in {HISTORY_FILE}")
 
 
 if __name__ == "__main__":
