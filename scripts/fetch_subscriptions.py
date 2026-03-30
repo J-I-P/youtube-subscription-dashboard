@@ -30,7 +30,8 @@ HISTORY_FILE = Path("public/data/history.json")
 AUTO_TAGS_CACHE_FILE = Path("public/data/auto-tags-cache.json")
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+GEMINI_DEFAULT_MODEL = "gemini-2.5-flash-lite"
 
 # Predefined tag taxonomy for consistent classification
 TAG_CATEGORIES = [
@@ -258,6 +259,9 @@ def classify_channels_with_gemini(channels: list[dict]) -> dict[str, list[str]]:
     if not api_key:
         return {}
 
+    model = os.environ.get("GEMINI_MODEL", GEMINI_DEFAULT_MODEL)
+    api_url = GEMINI_API_URL_TEMPLATE.format(model=model)
+
     categories_str = ", ".join(TAG_CATEGORIES)
     channel_list = "\n".join(
         f'{i+1}. ID={c["id"]} | Title: {c["title"]} | Description: {c["description"][:200]}'
@@ -277,7 +281,7 @@ Channels:
 
     try:
         resp = requests.post(
-            f"{GEMINI_API_URL}?key={api_key}",
+            f"{api_url}?key={api_key}",
             json={"contents": [{"parts": [{"text": prompt}]}]},
             timeout=60,
         )
