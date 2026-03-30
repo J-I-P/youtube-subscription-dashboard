@@ -41,6 +41,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/subscriptions.json
+          git add public/data/subscriptions.json public/data/history.json
           git diff --cached --quiet || git commit -m "chore: update subscriptions data [skip ci]"
           git push
