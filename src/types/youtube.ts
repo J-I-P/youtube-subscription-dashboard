@@ -20,6 +20,8 @@ export interface Channel {
   customUrl: string | null;
   country: string | null;
   lastVideo: LastVideo | null;
+  /** AI-generated tags from fetch script */
+  autoTags?: string[];
 }
 
 export interface SubscriptionsData {

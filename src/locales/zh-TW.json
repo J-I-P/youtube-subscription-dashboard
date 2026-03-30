@@ -106,6 +106,14 @@
     "invalidToken": "Token 無效，請確認有 gist 權限。"
   },
   "scrollToTop": "回到頂部",
+  "tags": {
+    "label": "標籤",
+    "clear": "清除",
+    "noTag": "無標籤",
+    "noTagsYet": "尚未加入任何標籤。",
+    "inputPlaceholder": "新增標籤…",
+    "add": "新增"
+  },
   "landing": {
     "navTitle": "YouTube 訂閱總覽",
     "enterDashboard": "進入 Dashboard →",

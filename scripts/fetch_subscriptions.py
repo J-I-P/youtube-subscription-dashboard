@@ -27,7 +27,20 @@ import requests
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 OUTPUT_FILE = Path("public/data/subscriptions.json")
 HISTORY_FILE = Path("public/data/history.json")
+AUTO_TAGS_CACHE_FILE = Path("public/data/auto-tags-cache.json")
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+
+# Predefined tag taxonomy for consistent classification
+TAG_CATEGORIES = [
+    "Programming", "Gaming", "Music", "Education", "Science", "Food & Cooking",
+    "Travel", "Fitness & Health", "Business", "Finance", "Entertainment",
+    "News & Politics", "Art & Design", "Film & Cinema", "DIY & Crafts",
+    "Sports", "Tech & Gadgets", "Anime & Manga", "Podcast", "Language Learning",
+    "History", "Comedy", "Fashion & Beauty", "Nature & Wildlife", "Automotive",
+    "Photography", "Architecture", "Philosophy", "Vlog", "Kids & Family",
+]
 
 
 def get_access_token() -> str:
@@ -222,6 +235,100 @@ def fetch_channel_details(access_token: str, channel_ids: list[str], subscriptio
     return channels
 
 
+def load_auto_tags_cache() -> dict[str, list[str]]:
+    """Load the auto-tags cache. Returns a dict of channelId -> [tags]."""
+    if AUTO_TAGS_CACHE_FILE.exists():
+        with open(AUTO_TAGS_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data.get("tags", {})
+    return {}
+
+
+def save_auto_tags_cache(cache: dict[str, list[str]]) -> None:
+    with open(AUTO_TAGS_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump({"version": 1, "tags": cache}, f, ensure_ascii=False, indent=2)
+
+
+def classify_channels_with_gemini(channels: list[dict]) -> dict[str, list[str]]:
+    """
+    Call Gemini API to classify a batch of channels into predefined tag categories.
+    Returns a dict of channelId -> [tags].
+    """
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        return {}
+
+    categories_str = ", ".join(TAG_CATEGORIES)
+    channel_list = "\n".join(
+        f'{i+1}. ID={c["id"]} | Title: {c["title"]} | Description: {c["description"][:200]}'
+        for i, c in enumerate(channels)
+    )
+
+    prompt = f"""You are classifying YouTube channels into categories.
+
+Available categories: {categories_str}
+
+For each channel below, pick 1-3 categories that best describe its content.
+Respond ONLY with a JSON object mapping channel ID to an array of category strings.
+Example: {{"UCxxxxx": ["Programming", "Education"], "UCyyyyy": ["Gaming"]}}
+
+Channels:
+{channel_list}"""
+
+    try:
+        resp = requests.post(
+            f"{GEMINI_API_URL}?key={api_key}",
+            json={"contents": [{"parts": [{"text": prompt}]}]},
+            timeout=60,
+        )
+        resp.raise_for_status()
+        raw_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        # Strip markdown code fences if present
+        raw_text = raw_text.strip()
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:]
+        result = json.loads(raw_text.strip())
+        # Validate: only allow known categories
+        valid_set = set(TAG_CATEGORIES)
+        return {
+            cid: [t for t in tags if t in valid_set]
+            for cid, tags in result.items()
+            if isinstance(tags, list)
+        }
+    except Exception as e:
+        print(f"  Gemini classification error: {e}")
+        return {}
+
+
+def classify_new_channels(channels: list[dict], cache: dict[str, list[str]]) -> dict[str, list[str]]:
+    """Classify only channels not already in the cache. Updates and returns the cache."""
+    new_channels = [c for c in channels if c["id"] not in cache]
+
+    if not new_channels:
+        print("All channels already classified, skipping Gemini API calls.")
+        return cache
+
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        print("GEMINI_API_KEY not set, skipping auto-tag classification.")
+        return cache
+
+    print(f"Classifying {len(new_channels)} new channels with Gemini...")
+    batch_size = 20
+    for i in range(0, len(new_channels), batch_size):
+        batch = new_channels[i : i + batch_size]
+        print(f"  Batch {i // batch_size + 1}/{(len(new_channels) + batch_size - 1) // batch_size}...")
+        results = classify_channels_with_gemini(batch)
+        cache.update(results)
+        if i + batch_size < len(new_channels):
+            time.sleep(1)  # Brief pause between batches
+
+    print(f"Classification complete. Cache now has {len(cache)} entries.")
+    return cache
+
+
 def main():
     print("Obtaining access token...")
     access_token = get_access_token()
@@ -244,6 +351,16 @@ def main():
             channel["lastVideo"] = None
         if idx % 50 == 0:
             print(f"  {idx}/{len(channels)} done...")
+
+    # Auto-tag classification with Gemini
+    print("Loading auto-tags cache...")
+    auto_tags_cache = load_auto_tags_cache()
+    auto_tags_cache = classify_new_channels(channels, auto_tags_cache)
+    save_auto_tags_cache(auto_tags_cache)
+
+    # Inject autoTags into each channel
+    for channel in channels:
+        channel["autoTags"] = auto_tags_cache.get(channel["id"], [])
 
     channels.sort(key=lambda c: c["title"].lower())
 

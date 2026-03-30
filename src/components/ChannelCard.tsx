@@ -4,6 +4,7 @@ import { MdClose, MdFavorite, MdFavoriteBorder, MdGroup, MdLocationOn, MdOpenInN
 import { isChannelInactive } from "../channelHealth";
 import type { Channel } from "../types/youtube";
 import { FlagIcon } from "./FlagIcon";
+import { TagManager } from "./TagManager";
 
 interface Props {
   channel: Channel;
@@ -13,6 +14,10 @@ interface Props {
   onCancelUnsubscribe?: () => void;
   canUnsubscribe?: boolean;
   isInUnsubscribeQueue?: boolean;
+  getEffectiveTags: (channelId: string, autoTags: string[]) => string[];
+  addUserTag: (channelId: string, tagName: string) => void;
+  removeTag: (channelId: string, tagName: string, autoTags: string[]) => void;
+  allUserTagNames: string[];
 }
 
 function formatCount(n: number | null): string {
@@ -22,7 +27,7 @@ function formatCount(n: number | null): string {
   return String(n);
 }
 
-export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscribe, onCancelUnsubscribe, canUnsubscribe, isInUnsubscribeQueue }: Props) {
+export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscribe, onCancelUnsubscribe, canUnsubscribe, isInUnsubscribeQueue, getEffectiveTags, addUserTag, removeTag, allUserTagNames }: Props) {
   const { t } = useTranslation();
   const [modalOpen, setModalOpen] = useState(false);
   const inactive = isChannelInactive(channel);
@@ -121,6 +126,28 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscri
           <span className="flex items-center gap-1"><MdVideocam /> {formatCount(channel.videoCount)}</span>
           {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} className="w-4 h-3 rounded-sm shrink-0" /> {channel.country}</span>}
         </div>
+
+        {/* Tag badges */}
+        {(() => {
+          const tags = getEffectiveTags(channel.id, channel.autoTags ?? []);
+          if (tags.length === 0) return null;
+          const visible = tags.slice(0, 2);
+          const extra = tags.length - visible.length;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {visible.map((tag) => (
+                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                  {tag}
+                </span>
+              ))}
+              {extra > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                  +{extra}
+                </span>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Inactive warning */}
         {inactive && (
@@ -294,6 +321,21 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscri
                     {t("channelCard.noDescription")}
                   </p>
                 )}
+              </div>
+
+              {/* Tags */}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+                  {t("tags.label")}
+                </p>
+                <TagManager
+                  channelId={channel.id}
+                  autoTags={channel.autoTags ?? []}
+                  getEffectiveTags={getEffectiveTags}
+                  addUserTag={addUserTag}
+                  removeTag={removeTag}
+                  allUserTagNames={allUserTagNames}
+                />
               </div>
             </div>
 

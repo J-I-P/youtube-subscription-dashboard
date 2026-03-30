@@ -9,7 +9,9 @@ import { GitHubAuthButton } from "./components/GitHubAuthButton";
 import { LangToggle } from "./components/LangToggle";
 import { SearchBar } from "./components/SearchBar";
 import { SortBar, type SortKey, type SortOrder } from "./components/SortBar";
+import { TagFilter } from "./components/TagFilter";
 import { useGistFavorites } from "./hooks/useGistFavorites";
+import { useGistTags } from "./hooks/useGistTags";
 import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { useUnsubscribeQueue } from "./hooks/useUnsubscribeQueue";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
@@ -33,12 +35,14 @@ export default function App() {
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
   const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
+  const { getEffectiveTags, allUserTagNames, addUserTag, removeTag } = useGistTags(token);
   const { isInQueue, addToQueue, removeFromQueue } = useUnsubscribeQueue(token);
   const [tab, setTab] = useState<Tab>("stats");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   const availableCountries = useMemo(() => {
     if (!data) return [];
@@ -62,6 +66,35 @@ export default function App() {
     return data.channels.filter(isChannelInactive).length;
   }, [data]);
 
+  const availableTags = useMemo(() => {
+    if (!data) return [];
+    const tagSet = new Set<string>();
+    for (const c of data.channels) {
+      const tags = getEffectiveTags(c.id, c.autoTags ?? []);
+      for (const t of tags) tagSet.add(t);
+    }
+    const hasNoTag = data.channels.some((c) => getEffectiveTags(c.id, c.autoTags ?? []).length === 0);
+    const sorted = [...tagSet].sort((a, b) => a.localeCompare(b));
+    if (hasNoTag) sorted.push("__no_tag__");
+    return sorted;
+  }, [data, getEffectiveTags]);
+
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (!data) return counts;
+    for (const c of data.channels) {
+      const tags = getEffectiveTags(c.id, c.autoTags ?? []);
+      if (tags.length === 0) {
+        counts["__no_tag__"] = (counts["__no_tag__"] ?? 0) + 1;
+      } else {
+        for (const t of tags) {
+          counts[t] = (counts[t] ?? 0) + 1;
+        }
+      }
+    }
+    return counts;
+  }, [data, getEffectiveTags]);
+
   const channels = useMemo(() => {
     if (!data) return [];
 
@@ -79,6 +112,16 @@ export default function App() {
       if (selectedCountries.size > 0) {
         const countryKey = c.country ?? UNKNOWN;
         if (!selectedCountries.has(countryKey)) return false;
+      }
+      if (selectedTags.size > 0) {
+        const effectiveTags = getEffectiveTags(c.id, c.autoTags ?? []);
+        if (selectedTags.has("__no_tag__")) {
+          const otherSelected = [...selectedTags].filter((t) => t !== "__no_tag__");
+          const matchesOther = otherSelected.some((tag) => effectiveTags.includes(tag));
+          if (!matchesOther && effectiveTags.length > 0) return false;
+        } else {
+          if (![...selectedTags].some((tag) => effectiveTags.includes(tag))) return false;
+        }
       }
       return true;
     });
@@ -98,7 +141,7 @@ export default function App() {
       }
       return sortOrder === "asc" ? cmp : -cmp;
     });
-  }, [data, tab, query, sort, sortOrder, selectedCountries, favorites, isFavorite]);
+  }, [data, tab, query, sort, sortOrder, selectedCountries, selectedTags, getEffectiveTags, favorites, isFavorite]);
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -109,6 +152,15 @@ export default function App() {
       const next = new Set(prev);
       if (next.has(country)) next.delete(country);
       else next.add(country);
+      return next;
+    });
+  }
+
+  function toggleTag(tag: string) {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
       return next;
     });
   }
@@ -251,6 +303,14 @@ export default function App() {
               onClear={() => setSelectedCountries(new Set())}
             />
 
+            <TagFilter
+              tagNames={availableTags}
+              tagCounts={tagCounts}
+              selected={selectedTags}
+              onToggle={toggleTag}
+              onClear={() => setSelectedTags(new Set())}
+            />
+
             {data.lastUpdated && (
               <p className="text-xs text-gray-400 dark:text-gray-500">
                 {t("lastUpdated")}{" "}
@@ -283,6 +343,10 @@ export default function App() {
                     isInUnsubscribeQueue={isInQueue(channel.id)}
                     onUnsubscribe={async () => addToQueue(channel.id)}
                     onCancelUnsubscribe={() => removeFromQueue(channel.id)}
+                    getEffectiveTags={getEffectiveTags}
+                    addUserTag={addUserTag}
+                    removeTag={removeTag}
+                    allUserTagNames={allUserTagNames}
                   />
                 ))}
               </div>

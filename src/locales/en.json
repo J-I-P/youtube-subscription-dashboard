@@ -106,6 +106,14 @@
     "invalidToken": "Invalid token. Please make sure you have the gist scope."
   },
   "scrollToTop": "Scroll to top",
+  "tags": {
+    "label": "Tags",
+    "clear": "Clear",
+    "noTag": "No Tag",
+    "noTagsYet": "No tags yet. Add one below.",
+    "inputPlaceholder": "Add tag...",
+    "add": "Add"
+  },
   "landing": {
     "navTitle": "YouTube Subscriptions",
     "enterDashboard": "Enter Dashboard →",
