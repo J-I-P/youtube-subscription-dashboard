@@ -33,6 +33,9 @@ OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 GEMINI_DEFAULT_MODEL = "gemini-2.5-flash-lite"
 
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+OPENAI_DEFAULT_MODEL = "gpt-4o-mini"
+
 # Predefined tag taxonomy for consistent classification
 TAG_CATEGORIES = [
     "Programming", "Gaming", "Music", "Education", "Science", "Food & Cooking",
@@ -250,25 +253,13 @@ def save_auto_tags_cache(cache: dict[str, list[str]]) -> None:
         json.dump({"version": 1, "tags": cache}, f, ensure_ascii=False, indent=2)
 
 
-def classify_channels_with_gemini(channels: list[dict]) -> dict[str, list[str]]:
-    """
-    Call Gemini API to classify a batch of channels into predefined tag categories.
-    Returns a dict of channelId -> [tags].
-    """
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
-        return {}
-
-    model = os.environ.get("GEMINI_MODEL", GEMINI_DEFAULT_MODEL)
-    api_url = GEMINI_API_URL_TEMPLATE.format(model=model)
-
+def _build_classification_prompt(channels: list[dict]) -> str:
     categories_str = ", ".join(TAG_CATEGORIES)
     channel_list = "\n".join(
         f'{i+1}. ID={c["id"]} | Title: {c["title"]} | Description: {c["description"][:200]}'
         for i, c in enumerate(channels)
     )
-
-    prompt = f"""You are classifying YouTube channels into categories.
+    return f"""You are classifying YouTube channels into categories.
 
 Available categories: {categories_str}
 
@@ -278,6 +269,35 @@ Example: {{"UCxxxxx": ["Programming", "Education"], "UCyyyyy": ["Gaming"]}}
 
 Channels:
 {channel_list}"""
+
+
+def _parse_classification_response(raw_text: str) -> dict[str, list[str]]:
+    raw_text = raw_text.strip()
+    if raw_text.startswith("```"):
+        raw_text = raw_text.split("```")[1]
+        if raw_text.startswith("json"):
+            raw_text = raw_text[4:]
+    result = json.loads(raw_text.strip())
+    valid_set = set(TAG_CATEGORIES)
+    return {
+        cid: [t for t in tags if t in valid_set]
+        for cid, tags in result.items()
+        if isinstance(tags, list)
+    }
+
+
+def classify_channels_with_gemini(channels: list[dict]) -> dict[str, list[str]] | None:
+    """
+    Call Gemini API to classify a batch of channels.
+    Returns a dict of channelId -> [tags], or None if the daily quota is exceeded.
+    """
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key:
+        return {}
+
+    model = os.environ.get("GEMINI_MODEL", GEMINI_DEFAULT_MODEL)
+    api_url = GEMINI_API_URL_TEMPLATE.format(model=model)
+    prompt = _build_classification_prompt(channels)
 
     try:
         delay = 5.0
@@ -289,6 +309,13 @@ Channels:
             )
             if resp.status_code == 429:
                 if attempt == _MAX_RETRIES:
+                    try:
+                        err = resp.json()
+                        if any("quota" in str(d).lower() for d in err.get("error", {}).get("details", [])):
+                            print("  Gemini daily quota (RPD) exceeded.")
+                            return None
+                    except Exception:
+                        pass
                     resp.raise_for_status()
                 retry_after = resp.headers.get("Retry-After")
                 wait = float(retry_after) if retry_after else delay
@@ -299,23 +326,65 @@ Channels:
             resp.raise_for_status()
             break
         raw_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
-        # Strip markdown code fences if present
-        raw_text = raw_text.strip()
-        if raw_text.startswith("```"):
-            raw_text = raw_text.split("```")[1]
-            if raw_text.startswith("json"):
-                raw_text = raw_text[4:]
-        result = json.loads(raw_text.strip())
-        # Validate: only allow known categories
-        valid_set = set(TAG_CATEGORIES)
-        return {
-            cid: [t for t in tags if t in valid_set]
-            for cid, tags in result.items()
-            if isinstance(tags, list)
-        }
+        return _parse_classification_response(raw_text)
     except Exception as e:
         print(f"  Gemini classification error: {e}")
         return {}
+
+
+def classify_channels_with_openai(channels: list[dict]) -> dict[str, list[str]] | None:
+    """
+    Call OpenAI API to classify a batch of channels.
+    Returns a dict of channelId -> [tags], or None if the quota is exceeded.
+    """
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    if not api_key:
+        return {}
+
+    model = os.environ.get("OPENAI_MODEL", OPENAI_DEFAULT_MODEL)
+    prompt = _build_classification_prompt(channels)
+
+    try:
+        delay = 2.0
+        for attempt in range(1, _MAX_RETRIES + 1):
+            resp = requests.post(
+                OPENAI_API_URL,
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                },
+                timeout=60,
+            )
+            if resp.status_code == 429:
+                if attempt == _MAX_RETRIES:
+                    resp.raise_for_status()
+                retry_after = resp.headers.get("Retry-After")
+                wait = float(retry_after) if retry_after else delay
+                print(f"  OpenAI rate-limited, retrying in {wait:.0f}s (attempt {attempt}/{_MAX_RETRIES})...")
+                time.sleep(wait)
+                delay = min(delay * 2, 60)
+                continue
+            resp.raise_for_status()
+            break
+        raw_text = resp.json()["choices"][0]["message"]["content"]
+        return _parse_classification_response(raw_text)
+    except Exception as e:
+        print(f"  OpenAI classification error: {e}")
+        return {}
+
+
+def get_ai_provider() -> str | None:
+    """Determine which AI provider to use. Returns 'gemini', 'openai', or None."""
+    explicit = os.environ.get("AI_PROVIDER", "").lower()
+    if explicit in ("gemini", "openai"):
+        return explicit
+    if os.environ.get("OPENAI_API_KEY"):
+        return "openai"
+    if os.environ.get("GEMINI_API_KEY"):
+        return "gemini"
+    return None
 
 
 def classify_new_channels(channels: list[dict], cache: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -323,26 +392,45 @@ def classify_new_channels(channels: list[dict], cache: dict[str, list[str]]) -> 
     new_channels = [c for c in channels if c["id"] not in cache]
 
     if not new_channels:
-        print("All channels already classified, skipping Gemini API calls.")
+        print("All channels already classified, skipping AI API calls.")
         return cache
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
-        print("GEMINI_API_KEY not set, skipping auto-tag classification.")
+    provider = get_ai_provider()
+    if not provider:
+        print("No AI API key set (GEMINI_API_KEY or OPENAI_API_KEY), skipping auto-tag classification.")
         return cache
 
-    print(f"Classifying {len(new_channels)} new channels with Gemini...")
-    batch_size = 20
+    # OpenAI has generous rate limits; Gemini free tier has RPD=20 so needs larger batches
+    if provider == "openai":
+        batch_size = 20
+        batch_sleep = 1.0
+        classify_fn = classify_channels_with_openai
+    else:
+        batch_size = 50  # Keep total batches within Gemini RPD=20 (984 / 50 ≈ 20 batches)
+        batch_sleep = 7.0  # 10 RPM free tier (1 req / 6s)
+        classify_fn = classify_channels_with_gemini
+
+    print(f"Classifying {len(new_channels)} new channels with {provider} ({model_label(provider)})...")
+    total_batches = (len(new_channels) + batch_size - 1) // batch_size
     for i in range(0, len(new_channels), batch_size):
         batch = new_channels[i : i + batch_size]
-        print(f"  Batch {i // batch_size + 1}/{(len(new_channels) + batch_size - 1) // batch_size}...")
-        results = classify_channels_with_gemini(batch)
+        print(f"  Batch {i // batch_size + 1}/{total_batches}...")
+        results = classify_fn(batch)
+        if results is None:
+            print("  Daily request limit reached. Progress saved; remaining channels will be classified on next run.")
+            break
         cache.update(results)
         if i + batch_size < len(new_channels):
-            time.sleep(5)  # ~15 RPM free tier limit
+            time.sleep(batch_sleep)
 
     print(f"Classification complete. Cache now has {len(cache)} entries.")
     return cache
+
+
+def model_label(provider: str) -> str:
+    if provider == "openai":
+        return os.environ.get("OPENAI_MODEL", OPENAI_DEFAULT_MODEL)
+    return os.environ.get("GEMINI_MODEL", GEMINI_DEFAULT_MODEL)
 
 
 def main():
