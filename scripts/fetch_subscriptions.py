@@ -360,6 +360,13 @@ def main():
     print("Loading auto-tags cache...")
     auto_tags_cache = load_auto_tags_cache()
     auto_tags_cache = classify_new_channels(channels, auto_tags_cache)
+
+    # Prune stale cache entries for unsubscribed channels
+    current_ids = {c["id"] for c in channels}
+    stale_count = sum(1 for k in auto_tags_cache if k not in current_ids)
+    if stale_count:
+        auto_tags_cache = {k: v for k, v in auto_tags_cache.items() if k in current_ids}
+        print(f"Removed {stale_count} stale entries from auto-tags cache.")
     save_auto_tags_cache(auto_tags_cache)
 
     # Inject autoTags into each channel

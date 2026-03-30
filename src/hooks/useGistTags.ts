@@ -211,5 +211,30 @@ export function useGistTags(token: string | null) {
     [token, scheduleSyncToGist]
   );
 
-  return { getEffectiveTags, allUserTagNames, addUserTag, removeTag, syncing };
+  const pruneOrphans = useCallback(
+    (validIds: Set<string>) => {
+      setTagsData((prev) => {
+        const prunedUserTags = Object.fromEntries(
+          Object.entries(prev.userTags).filter(([id]) => validIds.has(id))
+        );
+        const prunedRemovedTags = Object.fromEntries(
+          Object.entries(prev.userRemovedTags).filter(([id]) => validIds.has(id))
+        );
+        const changed =
+          Object.keys(prunedUserTags).length !== Object.keys(prev.userTags).length ||
+          Object.keys(prunedRemovedTags).length !== Object.keys(prev.userRemovedTags).length;
+        if (!changed) return prev;
+        const next: TagsData = { version: 1, userTags: prunedUserTags, userRemovedTags: prunedRemovedTags };
+        if (token) {
+          scheduleSyncToGist(next);
+        } else {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+        }
+        return next;
+      });
+    },
+    [token, scheduleSyncToGist]
+  );
+
+  return { getEffectiveTags, allUserTagNames, addUserTag, removeTag, pruneOrphans, syncing };
 }

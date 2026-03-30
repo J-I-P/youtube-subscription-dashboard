@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MdSubscriptions } from "react-icons/md";
 import i18n from "./i18n";
@@ -35,8 +35,15 @@ export default function App() {
   const { data, status, error } = useSubscriptions();
   const { status: authStatus, token, user, error: authError, loginWithToken, logout } = useGitHubAuth();
   const { favorites, isFavorite, toggleFavorite, syncing } = useGistFavorites(token);
-  const { getEffectiveTags, allUserTagNames, addUserTag, removeTag } = useGistTags(token);
+  const { getEffectiveTags, allUserTagNames, addUserTag, removeTag, pruneOrphans } = useGistTags(token);
   const { isInQueue, addToQueue, removeFromQueue } = useUnsubscribeQueue(token);
+
+  // Clean up tags for channels that are no longer subscribed
+  useEffect(() => {
+    if (!data) return;
+    const validIds = new Set(data.channels.map((c) => c.id));
+    pruneOrphans(validIds);
+  }, [data, pruneOrphans]);
   const [tab, setTab] = useState<Tab>("stats");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("title");
