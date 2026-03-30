@@ -280,12 +280,24 @@ Channels:
 {channel_list}"""
 
     try:
-        resp = requests.post(
-            f"{api_url}?key={api_key}",
-            json={"contents": [{"parts": [{"text": prompt}]}]},
-            timeout=60,
-        )
-        resp.raise_for_status()
+        delay = 5.0
+        for attempt in range(1, _MAX_RETRIES + 1):
+            resp = requests.post(
+                f"{api_url}?key={api_key}",
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+                timeout=60,
+            )
+            if resp.status_code == 429:
+                if attempt == _MAX_RETRIES:
+                    resp.raise_for_status()
+                retry_after = resp.headers.get("Retry-After")
+                wait = float(retry_after) if retry_after else delay
+                print(f"  Gemini rate-limited, retrying in {wait:.0f}s (attempt {attempt}/{_MAX_RETRIES})...")
+                time.sleep(wait)
+                delay = min(delay * 2, 60)
+                continue
+            resp.raise_for_status()
+            break
         raw_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
         # Strip markdown code fences if present
         raw_text = raw_text.strip()
@@ -327,7 +339,7 @@ def classify_new_channels(channels: list[dict], cache: dict[str, list[str]]) -> 
         results = classify_channels_with_gemini(batch)
         cache.update(results)
         if i + batch_size < len(new_channels):
-            time.sleep(1)  # Brief pause between batches
+            time.sleep(5)  # ~15 RPM free tier limit
 
     print(f"Classification complete. Cache now has {len(cache)} entries.")
     return cache
