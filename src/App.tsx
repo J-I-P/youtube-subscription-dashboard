@@ -296,7 +296,25 @@ export default function App() {
                 lastUpdated={data.lastUpdated}
               />
             ) : tab === "this-week" ? (
-              <RecentFeed channels={data.channels} />
+              <>
+                <div className="flex-1">
+                  <SearchBar value={query} onChange={setQuery} />
+                </div>
+                <CountryFilter
+                  countries={availableCountries}
+                  selected={selectedCountries}
+                  onToggle={toggleCountry}
+                  onClear={() => setSelectedCountries(new Set())}
+                />
+                <TagFilter
+                  tagNames={availableTags}
+                  tagCounts={tagCounts}
+                  selected={selectedTags}
+                  onToggle={toggleTag}
+                  onClear={() => setSelectedTags(new Set())}
+                />
+                <RecentFeed channels={channels} />
+              </>
             ) : (
               <>
             <div className="flex flex-col sm:flex-row gap-3">
