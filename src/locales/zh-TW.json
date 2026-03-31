@@ -6,7 +6,7 @@
   "tabs": {
     "stats": "統計趨勢",
     "all": "全部頻道",
-    "thisWeek": "本週更新",
+    "thisWeek": "近期動態",
     "favorites": "我的最愛",
     "inactive": "停更頻道"
   },
@@ -19,6 +19,12 @@
     "favorites": "還沒有加入最愛的頻道，點擊頻道卡片上的 ♡ 來收藏。",
     "inactive": "目前沒有停更超過 6 個月的頻道，訂閱健康！",
     "search": "找不到符合「{{query}}」的頻道"
+  },
+  "recent": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "thisWeek": "本週",
+    "empty": "本週沒有頻道更新影片。"
   },
   "lastUpdated": "最後更新：",
   "stats": {

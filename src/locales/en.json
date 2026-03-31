@@ -6,7 +6,7 @@
   "tabs": {
     "stats": "Statistics",
     "all": "All Channels",
-    "thisWeek": "This Week",
+    "thisWeek": "Recent",
     "favorites": "Favorites",
     "inactive": "Inactive"
   },
@@ -19,6 +19,12 @@
     "favorites": "No favorites yet. Click ♡ on a channel card to save it.",
     "inactive": "No channels inactive for over 6 months. Subscriptions look healthy!",
     "search": "No channels match \"{{query}}\""
+  },
+  "recent": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This Week",
+    "empty": "No channels updated this week."
   },
   "lastUpdated": "Last updated:",
   "stats": {

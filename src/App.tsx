@@ -16,6 +16,7 @@ import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { useUnsubscribeQueue } from "./hooks/useUnsubscribeQueue";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { StatsTab } from "./components/StatsTab";
+import { RecentFeed } from "./components/RecentFeed";
 import { useSubscriptions } from "./hooks/useSubscriptions";
 import { LandingPage } from "./LandingPage";
 
@@ -294,6 +295,8 @@ export default function App() {
                 totalCount={data.totalCount}
                 lastUpdated={data.lastUpdated}
               />
+            ) : tab === "this-week" ? (
+              <RecentFeed channels={data.channels} />
             ) : (
               <>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -330,9 +333,7 @@ export default function App() {
 
             {channels.length === 0 ? (
               <p className="text-center text-gray-500 dark:text-gray-400 py-20">
-                {tab === "this-week" && !query
-                  ? t("empty.thisWeek")
-                  : tab === "favorites" && !query
+                {tab === "favorites" && !query
                   ? t("empty.favorites")
                   : tab === "inactive" && !query
                   ? t("empty.inactive")
