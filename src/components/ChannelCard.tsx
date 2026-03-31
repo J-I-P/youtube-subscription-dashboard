@@ -338,20 +338,6 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscri
                 )}
               </div>
 
-              {/* Tags */}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
-                  {t("tags.label")}
-                </p>
-                <TagManager
-                  channelId={channel.id}
-                  autoTags={channel.autoTags ?? []}
-                  getEffectiveTags={getEffectiveTags}
-                  addUserTag={addUserTag}
-                  removeTag={removeTag}
-                  allUserTagNames={allUserTagNames}
-                />
-              </div>
             </div>
 
             {/* Modal footer */}
