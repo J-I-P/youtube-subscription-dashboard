@@ -127,6 +127,14 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscri
           {channel.country && <span className="flex items-center gap-1"><MdLocationOn /><FlagIcon code={channel.country} className="w-4 h-3 rounded-sm shrink-0" /> {channel.country}</span>}
         </div>
 
+        {/* Inactive warning */}
+        {inactive && (
+          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400">
+            <MdWarning className="flex-shrink-0 text-sm" />
+            <span>{t("channelCard.inactive")}</span>
+          </div>
+        )}
+
         {/* Tag badges */}
         {(() => {
           const tags = getEffectiveTags(channel.id, channel.autoTags ?? []);
@@ -148,14 +156,6 @@ export function ChannelCard({ channel, isFavorite, onToggleFavorite, onUnsubscri
             </div>
           );
         })()}
-
-        {/* Inactive warning */}
-        {inactive && (
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-400">
-            <MdWarning className="flex-shrink-0 text-sm" />
-            <span>{t("channelCard.inactive")}</span>
-          </div>
-        )}
 
         {/* Latest video */}
         {channel.lastVideo ? (
