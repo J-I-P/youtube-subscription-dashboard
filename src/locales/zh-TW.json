@@ -90,6 +90,14 @@
     "ascending": "升冪",
     "descending": "降冪"
   },
+  "lastVideoFilter": {
+    "label": "最新影片：",
+    "7d": "7 天內",
+    "30d": "30 天內",
+    "3m": "3 個月內",
+    "6m": "6 個月內",
+    "1y": "1 年內"
+  },
   "country": {
     "label": "地區：",
     "clear": "清除"

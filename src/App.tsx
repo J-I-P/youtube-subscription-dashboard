@@ -15,6 +15,7 @@ import { useGistTags } from "./hooks/useGistTags";
 import { useGitHubAuth } from "./hooks/useGitHubAuth";
 import { useUnsubscribeQueue } from "./hooks/useUnsubscribeQueue";
 import { ScrollToTopButton } from "./components/ScrollToTopButton";
+import { LastVideoFilter, isWithinRange, type LastVideoRange } from "./components/LastVideoFilter";
 import { StatsTab } from "./components/StatsTab";
 import { RecentFeed } from "./components/RecentFeed";
 import { useSubscriptions } from "./hooks/useSubscriptions";
@@ -51,6 +52,7 @@ export default function App() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedCountries, setSelectedCountries] = useState<Set<string>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [lastVideoRange, setLastVideoRange] = useState<LastVideoRange | null>(null);
 
   const availableCountries = useMemo(() => {
     if (!data) return [];
@@ -117,6 +119,9 @@ export default function App() {
         if (!isChannelInactive(c)) return false;
       }
       if (!c.title.toLowerCase().includes(query.toLowerCase())) return false;
+      if (tab === "all" && lastVideoRange !== null) {
+        if (!isWithinRange(c.lastVideo?.publishedAt, lastVideoRange)) return false;
+      }
       if (selectedCountries.size > 0) {
         const countryKey = c.country ?? UNKNOWN;
         if (!selectedCountries.has(countryKey)) return false;
@@ -149,7 +154,7 @@ export default function App() {
       }
       return sortOrder === "asc" ? cmp : -cmp;
     });
-  }, [data, tab, query, sort, sortOrder, selectedCountries, selectedTags, getEffectiveTags, favorites, isFavorite]);
+  }, [data, tab, query, sort, sortOrder, selectedCountries, selectedTags, getEffectiveTags, favorites, isFavorite, lastVideoRange]);
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -330,6 +335,13 @@ export default function App() {
               onToggle={toggleCountry}
               onClear={() => setSelectedCountries(new Set())}
             />
+
+            {tab === "all" && (
+              <LastVideoFilter
+                selected={lastVideoRange}
+                onChange={setLastVideoRange}
+              />
+            )}
 
             <TagFilter
               tagNames={availableTags}
