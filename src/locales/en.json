@@ -112,7 +112,9 @@
     "noTag": "No Tag",
     "noTagsYet": "No tags yet. Add one below.",
     "inputPlaceholder": "Add tag...",
-    "add": "Add"
+    "add": "Add",
+    "edit": "Edit tags",
+    "doneEditing": "Done"
   },
   "landing": {
     "navTitle": "YouTube Subscriptions",

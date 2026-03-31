@@ -112,7 +112,9 @@
     "noTag": "無標籤",
     "noTagsYet": "尚未加入任何標籤。",
     "inputPlaceholder": "新增標籤…",
-    "add": "新增"
+    "add": "新增",
+    "edit": "編輯標籤",
+    "doneEditing": "完成"
   },
   "landing": {
     "navTitle": "YouTube 訂閱總覽",
