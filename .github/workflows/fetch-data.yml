@@ -4,10 +4,14 @@ on:
   schedule:
     # Runs every Monday at 02:00 UTC
     - cron: "0 2 * * 1"
-  workflow_dispatch: # allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: fetch-youtube-subscriptions-main
+  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -19,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,7 +51,7 @@ jobs:
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/data/subscriptions.json public/data/history.json public/data/auto-tags-cache.json
           git diff --cached --quiet || git commit -m "chore: update subscriptions data [skip ci]"
           git push
