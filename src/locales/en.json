@@ -136,7 +136,7 @@
     "badge": "Personal YouTube Subscription Manager",
     "heroTitle1": "Take control of your",
     "heroTitle2": "subscriptions",
-    "heroDesc": "Manage all your subscribed channels in one place. View stats, filter this week's updates, and save your favorites. Data syncs automatically every week so you never miss anything.",
+    "heroDesc": "Manage all 900+ subscribed channels in one place. Explore stats, filter by tags or country, track weekly updates, flag inactive channels, and sync favorites across devices — all powered by a weekly GitHub Actions data pipeline.",
     "cta": "Get Started",
     "featuresTitle": "Features",
     "featuresSub": "A complete toolkit built for subscription management",
@@ -148,12 +148,15 @@
     "footerTitle": "YouTube Subscriptions",
     "footerSub": "Built with React + TypeScript + Tailwind CSS",
     "features": {
-      "stats": { "title": "Statistics", "desc": "Visualize subscription growth trends with charts and get an overview at a glance." },
+      "stats": { "title": "Statistics Dashboard", "desc": "Visualize subscription growth over time with line charts, see country distribution in a doughnut chart, and analyze subscriber scale and update frequency at a glance." },
       "search": { "title": "Instant Search", "desc": "Filter channels in real time by typing keywords to quickly find what you're looking for." },
-      "filter": { "title": "Multi-filter", "desc": "Combine country and sort filters freely to create your own personalized browsing experience." },
-      "favorites": { "title": "Favorites", "desc": "Save favorite channels and sync them across devices via GitHub Gist." },
-      "weekly": { "title": "This Week's Updates", "desc": "Automatically highlights channels that posted within the last 7 days." },
-      "sync": { "title": "Auto Sync", "desc": "GitHub Actions fetches the latest subscription data weekly — no manual updates needed." }
+      "filter": { "title": "Smart Filtering", "desc": "Combine country, tag, and last-video-date filters freely. Sort by name, subscribers, video count, or latest upload." },
+      "favorites": { "title": "Favorites Sync", "desc": "Star favorite channels and sync them across devices via GitHub Gist — no account or server required." },
+      "weekly": { "title": "Recent Updates Feed", "desc": "A dedicated feed highlights channels that posted new videos in the last 7 days, grouped by Today, Yesterday, and This Week." },
+      "sync": { "title": "Auto Data Sync", "desc": "GitHub Actions fetches the latest subscription data and commits it every week — fully automated, no manual updates needed." },
+      "tags": { "title": "Custom Tags", "desc": "Channels are auto-tagged by category. Add your own labels to organize subscriptions exactly the way you want, synced via GitHub Gist." },
+      "inactive": { "title": "Inactive Detection", "desc": "Automatically surfaces channels with no new videos in over 6 months so you can decide whether to keep or drop them." },
+      "unsubscribe": { "title": "Unsubscribe Queue", "desc": "Queue channels for removal from within the dashboard. A GitHub Actions workflow processes the unsubscription via the YouTube API on your behalf." }
     }
   }
 }

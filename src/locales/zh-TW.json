@@ -136,7 +136,7 @@
     "badge": "個人 YouTube 訂閱管理工具",
     "heroTitle1": "掌握你的",
     "heroTitle2": "訂閱",
-    "heroDesc": "一站式管理所有訂閱頻道，查看統計趨勢、篩選本週更新、收藏喜愛頻道。資料每週自動同步，讓你不再錯過任何精彩內容。",
+    "heroDesc": "一站式管理 900+ 訂閱頻道，查看統計趨勢、依標籤或地區篩選、追蹤本週更新、標記停更頻道、跨裝置同步最愛。資料由 GitHub Actions 每週自動同步。",
     "cta": "立即體驗",
     "featuresTitle": "功能特色",
     "featuresSub": "專為訂閱管理打造的全方位工具",
@@ -148,12 +148,15 @@
     "footerTitle": "YouTube 訂閱總覽",
     "footerSub": "使用 React + TypeScript + Tailwind CSS 打造",
     "features": {
-      "stats": { "title": "統計趨勢", "desc": "以視覺化圖表呈現頻道訂閱成長趨勢，一眼掌握整體數據概況。" },
+      "stats": { "title": "統計儀表板", "desc": "以折線圖呈現訂閱成長趨勢、甜甜圈圖展示地區分布，並以長條圖分析訂閱者規模與更新頻率，一眼掌握全局。" },
       "search": { "title": "即時搜尋", "desc": "輸入關鍵字即時篩選頻道，快速找到你想要的訂閱內容。" },
-      "filter": { "title": "多維度篩選", "desc": "依國家、排序方式自由組合篩選，打造專屬的頻道瀏覽體驗。" },
-      "favorites": { "title": "我的最愛", "desc": "收藏喜愛的頻道，搭配 GitHub Gist 跨裝置同步，隨時隨地查看。" },
-      "weekly": { "title": "本週更新", "desc": "自動標記 7 天內有新影片的頻道，不錯過任何最新內容。" },
-      "sync": { "title": "自動同步資料", "desc": "透過 GitHub Actions 每週自動拉取最新訂閱資料，免手動更新。" }
+      "filter": { "title": "智慧篩選", "desc": "依地區、標籤、最新影片日期自由組合篩選，並可依名稱、訂閱數、影片數或最新更新排序。" },
+      "favorites": { "title": "最愛同步", "desc": "收藏喜愛的頻道，透過 GitHub Gist 跨裝置同步，不需帳號或伺服器。" },
+      "weekly": { "title": "近期動態", "desc": "專屬動態頁面，按今天、昨天、本週分組顯示最近 7 天有新影片的頻道更新。" },
+      "sync": { "title": "自動同步資料", "desc": "透過 GitHub Actions 每週自動拉取最新訂閱資料並 commit，完全自動化，免手動更新。" },
+      "tags": { "title": "自訂標籤", "desc": "頻道依類別自動標記，也可新增個人標籤靈活整理，標籤透過 GitHub Gist 跨裝置同步。" },
+      "inactive": { "title": "停更偵測", "desc": "自動找出超過 6 個月未發布新影片的頻道，幫你決定是否繼續訂閱，保持清單健康。" },
+      "unsubscribe": { "title": "取消訂閱佇列", "desc": "在 Dashboard 中直接將頻道加入取消訂閱佇列，由 GitHub Actions workflow 代為呼叫 YouTube API 處理。" }
     }
   }
 }

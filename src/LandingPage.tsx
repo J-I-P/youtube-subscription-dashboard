@@ -7,8 +7,12 @@ import {
   MdSync,
   MdUpdate,
   MdFilterList,
+  MdLabel,
+  MdWarning,
+  MdRemoveCircleOutline,
+  MdLanguage,
 } from "react-icons/md";
-import { FaYoutube } from "react-icons/fa";
+import { FaYoutube, FaGithub } from "react-icons/fa";
 import { SiReact, SiTypescript, SiTailwindcss, SiVite } from "react-icons/si";
 import { LangToggle } from "./components/LangToggle";
 
@@ -22,6 +26,9 @@ const techStack = [
   { icon: <SiTailwindcss className="text-2xl text-teal-400" />, name: "Tailwind CSS v4" },
   { icon: <SiVite className="text-2xl text-violet-500" />, name: "Vite" },
   { icon: <FaYoutube className="text-2xl text-red-600" />, name: "YouTube Data API" },
+  { icon: <FaGithub className="text-2xl text-gray-700 dark:text-gray-300" />, name: "GitHub Actions" },
+  { icon: <MdBarChart className="text-2xl text-orange-500" />, name: "Chart.js" },
+  { icon: <MdLanguage className="text-2xl text-sky-500" />, name: "i18next (EN / 繁中)" },
 ];
 
 export function LandingPage({ onEnter }: LandingPageProps) {
@@ -34,6 +41,9 @@ export function LandingPage({ onEnter }: LandingPageProps) {
     { icon: <MdFavorite className="text-3xl text-pink-500" />, key: "favorites" },
     { icon: <MdUpdate className="text-3xl text-yellow-500" />, key: "weekly" },
     { icon: <MdSync className="text-3xl text-purple-500" />, key: "sync" },
+    { icon: <MdLabel className="text-3xl text-indigo-500" />, key: "tags" },
+    { icon: <MdWarning className="text-3xl text-amber-500" />, key: "inactive" },
+    { icon: <MdRemoveCircleOutline className="text-3xl text-rose-500" />, key: "unsubscribe" },
   ] as const;
 
   return (
