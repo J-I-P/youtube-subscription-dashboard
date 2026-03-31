@@ -3,7 +3,7 @@ name: Fetch YouTube Subscriptions
 on:
   schedule:
     # Runs every Monday at 02:00 UTC
-    - cron: "0 2 * * 1"
+    - cron: "0 19 * * *"  # 03:00 Taiwan time (UTC+8)
   workflow_dispatch:
 
 permissions:
