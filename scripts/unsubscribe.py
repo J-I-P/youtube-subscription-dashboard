@@ -8,15 +8,15 @@ with a JSON array of YouTube channel IDs (e.g. ["UCxxxxxx", "UCyyyyyy"]).
 This file is written by the dashboard UI using the user's GitHub token (gist scope).
 
 Required environment variables:
-  GITHUB_GIST_TOKEN      — GitHub PAT with gist scope (to read/clear the queue)
+  GIST_TOKEN      — GitHub PAT with gist scope (to read/clear the queue)
   YOUTUBE_CLIENT_ID      — OAuth 2.0 client ID
   YOUTUBE_CLIENT_SECRET  — OAuth 2.0 client secret
   YOUTUBE_REFRESH_TOKEN  — refresh token with youtube (read+write) scope
 
-Add GITHUB_GIST_TOKEN to GitHub Secrets (same value as the token used in the UI).
+Add GIST_TOKEN to GitHub Secrets (same value as the token used in the UI).
 
 Usage:
-  GITHUB_GIST_TOKEN=... YOUTUBE_CLIENT_ID=... YOUTUBE_CLIENT_SECRET=... \\
+  GIST_TOKEN=... YOUTUBE_CLIENT_ID=... YOUTUBE_CLIENT_SECRET=... \\
     YOUTUBE_REFRESH_TOKEN=... python scripts/unsubscribe.py
 """
 
@@ -128,7 +128,7 @@ def delete_subscription(access_token: str, subscription_id: str) -> None:
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    gh_token = os.environ["GITHUB_GIST_TOKEN"]
+    gh_token = os.environ["GIST_TOKEN"]
 
     print("Reading unsubscribe queue from Gist...")
     result = find_queue_gist(gh_token)
