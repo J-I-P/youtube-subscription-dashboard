@@ -1375,9 +1375,6 @@
     "UC9q-UvwDQEDe0011G5QWJeg": [
       "Entertainment"
     ],
-    "UC4bokYuSrVGpI6_WYv7Gdbw": [
-      "News & Politics"
-    ],
     "UCQ8zm7xZb7NWyMWOK8TSDXg": [
       "Vlog",
       "Entertainment"
@@ -1822,9 +1819,6 @@
     "UChhKBlh_wvspTh5n4mL0b5g": [
       "Music"
     ],
-    "UCaVICnDUyoEnGvk0W38Rtyg": [
-      "Entertainment"
-    ],
     "UC1EiHIhV6UDRWOY6BaEavdw": [],
     "UC-l7SYmrq9NJtQP3JVr146Q": [
       "Entertainment"
@@ -1877,10 +1871,6 @@
     ],
     "UCfpaSruWW3S4dibonKXENjA": [
       "Food & Cooking"
-    ],
-    "UCoxVNK9kjlaNBgOTbYRorQQ": [
-      "Tech & Gadgets",
-      "Education"
     ],
     "UCA_hK5eRICBdSOLlXKESvEg": [
       "Finance",
@@ -2345,10 +2335,6 @@
       "Anime & Manga",
       "Gaming"
     ],
-    "UCS_hnpJLQTvBkqALgapi_4g": [
-      "Music",
-      "Entertainment"
-    ],
     "UCUn77_F5A65HViL9OEvIpLw": [
       "Education"
     ],
@@ -2803,10 +2789,6 @@
     "UCzfNj5-UEvxOBErW2S3_bSg": [
       "Travel"
     ],
-    "UCI1EvAIviBYUSrBbzwpfErw": [
-      "Tech & Gadgets",
-      "Film & Cinema"
-    ],
     "UC9zY_E8mcAo_Oq772LEZq8Q": [
       "Music"
     ],
@@ -2842,10 +2824,6 @@
     "UCQYP5GHzgFN3CEisDxVlq_w": [
       "Comedy",
       "Entertainment"
-    ],
-    "UCTPPmVw8pCUmw9tfY_MaKNg": [
-      "Fitness & Health",
-      "Education"
     ],
     "UCWN3xxRkmTPmbKwht9FuE5A": [
       "Tech & Gadgets",
@@ -2948,19 +2926,10 @@
     "UC300v-FQAzMrPwB3ojftCXQ": [
       "Entertainment"
     ],
-    "UCTYQzAi6YOcgv2mkzsfzmpA": [
-      "Language Learning",
-      "Education"
-    ],
     "UCTT5gtQU5rX8sUQnZaBqiVw": [
       "Vlog",
       "Music"
     ],
-    "UCZpkfpfGe2ZC3AIQ69ERCJw": [
-      "Programming",
-      "Education"
-    ],
-    "UCXjBLqFxQ6nLCT-VplNqrEA": [],
     "UCpDZ4C2yCWkLRl7Lov5CZXg": [
       "Language Learning",
       "Education"
@@ -2971,25 +2940,9 @@
     "UCcU6CC2Gkc18aBUfEtdjaAA": [
       "Education"
     ],
-    "UC2D2CMWXMOVWx7giW1n3LIg": [
-      "Podcast",
-      "Science"
-    ],
     "UCATnB3v_NkTTd9iD_4W2A-g": [
       "Tech & Gadgets",
       "Education"
-    ],
-    "UCopDlGMFzSsmYY4InHAR3bw": [
-      "Vlog",
-      "Food & Cooking",
-      "Business"
-    ],
-    "UCTAPUHN61ifWKKRK-ceoJIg": [
-      "Fitness & Health"
-    ],
-    "UCO4GmpiTno-1VGikDLxUStQ": [
-      "Entertainment",
-      "Travel"
     ],
     "UCADYPXkjrJX4DewrUOg28rg": [
       "Food & Cooking",
@@ -3518,6 +3471,46 @@
     "UC4ucF6lzZ8rs0DuOyrg6ohQ": [
       "Entertainment",
       "Film & Cinema"
+    ],
+    "UC8hrRxv1FGEii4EbuUQEtSw": [
+      "Education"
+    ],
+    "UCFUFAguWjumxwzhC1Y6ZI7A": [],
+    "UCvn_XCl_mgQmt3sD753zdJA": [
+      "Language Learning"
+    ],
+    "UCg6gPGh8HU2U01vaFCAsvmQ": [
+      "Tech & Gadgets"
+    ],
+    "UCxvYEb3G4c4X2W_P2Cx_HcA": [
+      "Programming",
+      "Education",
+      "Tech & Gadgets"
+    ],
+    "UCsQpF-hfgzcpPMq2hF59TXQ": [
+      "Business",
+      "Finance"
+    ],
+    "UCIy5GtVvLEiLik0T2bZwm7g": [
+      "Science"
+    ],
+    "UC-iw--AhrSzrabmLL6l7Qeg": [
+      "Education"
+    ],
+    "UCO6BMxjvslH_jSo7FZi6DcQ": [
+      "Travel",
+      "Education"
+    ],
+    "UCZBe_bJ0jd96znGo42sgucg": [
+      "History",
+      "Education"
+    ],
+    "UC7z5VlhDHnorjUm6oW5dXcw": [
+      "Tech & Gadgets"
+    ],
+    "UCwkfNQzKwICfPKs6V0ZUFZQ": [
+      "Gaming",
+      "Entertainment"
     ]
   }
 }
